@@ -1,0 +1,29 @@
+# Battle Points Plugin 1.0.0
+# @author     ucchy
+# @license    GPLv3
+# @copyright  Copyright ucchy 2013
+
+initialPoint: 1500
+winBasePoint: 32
+winBonusPointPercent: 8
+ranks:
+  easy:
+    symbol: 'E'
+    color: 'blue'
+    border: 0
+  normal:
+    symbol: 'N'
+    color: 'aqua'
+    border: 1200
+  extra:
+    symbol: 'Ex'
+    color: 'gold'
+    border: 1400
+  hard:
+    symbol: 'H'
+    color: 'red'
+    border: 1600
+  lunatic:
+    symbol: 'L'
+    color: 'light_purple'
+    border: 1800

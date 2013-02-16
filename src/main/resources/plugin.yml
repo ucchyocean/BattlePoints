@@ -1,0 +1,29 @@
+name: BattlePoints
+main: com.github.ucchyocean.bp.BattlePoints
+version: 1.0.0
+author: ucchy
+description: Points system plugin for PVP
+commands:
+  battlepoints:
+    description: Points system plugin for PVP
+    aliases: bp
+    usage: |
+           /<command> rank [NumberOfView] - Show point ranking.
+           /<command> set (player) (point) - Set player's point.
+           /<command> reload - Reload config.yml.
+permissions:
+  battlepoints.rank:
+    description: Show point ranking command permission.
+    default: true
+  battlepoints.set:
+    description: Set player's point command permission.
+    default: op
+  battlepoints.reload:
+    description: Reload config command permission.
+    default: op
+  battlepoints.*:
+    children:
+      battlepoints.rank: true
+      battlepoints.set: true
+      battlepoints.reload: true
+    description: Allows all commands for BattlePoints.
