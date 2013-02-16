@@ -1,4 +1,4 @@
 BattlePoints
 ============
 
-The point system for 1 on 1 PVP Battle.
+The point system of 1 on 1 PVP Battle for CraftBukkit.
