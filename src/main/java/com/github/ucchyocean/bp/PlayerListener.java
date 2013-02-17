@@ -71,6 +71,9 @@ public class PlayerListener implements Listener {
         int point = BattlePoints.data.getPoint(player.getName());
         String rank = BPConfig.getRankFromPoint(point);
 
+        // 一応、最終攻撃履歴を消去しておく
+        BattlePoints.lastAttackData.removeLastDamage(player);
+
         // Suffixの更新
         BattlePoints.setPlayerSuffix(player, makeSuffix(rank, point));
 
@@ -107,6 +110,7 @@ public class PlayerListener implements Listener {
         if ( winner == null ) {
             BattlePoints.sendBroadcast(String.format(
                     ChatColor.LIGHT_PURPLE + "%s は自殺した！", loser.getName()));
+            BattlePoints.lastAttackData.removeLastDamage(loser);
             return;
         }
 
@@ -114,6 +118,10 @@ public class PlayerListener implements Listener {
         BattlePoints.sendBroadcast(String.format(
                 ChatColor.LIGHT_PURPLE + "%s は %s によって倒された！",
                 loser.getName(), winner.getName()));
+
+        // 最終攻撃履歴の削除
+        BattlePoints.lastAttackData.removeLastDamage(winner);
+        BattlePoints.lastAttackData.removeLastDamage(loser);
 
         // ポイント計算
         int lastWinnerPoint = BattlePoints.data.getPoint(winner.getName());

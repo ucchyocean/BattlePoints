@@ -44,6 +44,8 @@ public class BPCommand implements CommandExecutor {
             if ( args.length >= 3 && Utility.tryIntParse(args[2]) ) {
                 int point = Integer.parseInt(args[2]);
                 setPlayerPoint(args[1], point);
+                sender.sendMessage(ChatColor.GRAY +
+                        "プレイヤー" + args[1] + "のポイントを" + point + "に設定しました。");
                 return true;
             } else {
                 sender.sendMessage(ChatColor.RED + "パラメータの指定が正しくありません。");

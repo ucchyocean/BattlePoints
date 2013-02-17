@@ -39,6 +39,19 @@ public class LastAttackData {
     }
 
     /**
+     * 最終攻撃ログを消去する
+     * @param player 消去するプレイヤー
+     */
+    public void removeLastDamage(Player player) {
+        if ( attackers.contains(player) ) {
+            attackers.remove(player);
+        }
+        if ( attackDate.contains(player) ) {
+            attackDate.remove(player);
+        }
+    }
+
+    /**
      * 最後に攻撃した人を取得する
      * @param defender 攻撃を受けた人
      * @return 最後に攻撃を与えた人
