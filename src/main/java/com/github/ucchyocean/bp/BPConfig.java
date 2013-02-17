@@ -121,8 +121,9 @@ public class BPConfig {
      */
     public static int getEloRating(int winnerPoint, int loserPoint) {
 
-        int rate = winBasePoint - (int)Math.round(
+        int rate = winBasePoint + (int)Math.round(
                 (double)(loserPoint - winnerPoint) * winBonusPointPercent / 100 );
+
         if ( rate <= 0 ) {
             rate = 1;
         }
