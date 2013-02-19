@@ -108,16 +108,16 @@ public class PlayerListener implements Listener {
 
         // killer が取得できなかったら、ここで諦める
         if ( winner == null ) {
-            BattlePoints.sendBroadcast(String.format(
-                    ChatColor.LIGHT_PURPLE + "%s は自殺した！", loser.getName()));
+            //BattlePoints.sendBroadcast(String.format(
+            //        ChatColor.LIGHT_PURPLE + "%s は自殺した！", loser.getName()));
             BattlePoints.lastAttackData.removeLastDamage(loser);
             return;
         }
 
         // サーバーメッセージでアナウンス
-        BattlePoints.sendBroadcast(String.format(
-                ChatColor.LIGHT_PURPLE + "%s は %s によって倒された！",
-                loser.getName(), winner.getName()));
+        //BattlePoints.sendBroadcast(String.format(
+        //        ChatColor.LIGHT_PURPLE + "%s は %s によって倒された！",
+        //        loser.getName(), winner.getName()));
 
         // 最終攻撃履歴の削除
         BattlePoints.lastAttackData.removeLastDamage(winner);
@@ -140,16 +140,20 @@ public class PlayerListener implements Listener {
 
         BattlePoints.data.setPoint(winner.getName(), winnerPoint);
         BattlePoints.data.setPoint(loser.getName(), loserPoint);
+        String wRank = BPConfig.getRankFromPoint(winnerPoint);
+        String lRank = BPConfig.getRankFromPoint(loserPoint);
+
         BattlePoints.sendBroadcast(String.format(
-                ChatColor.LIGHT_PURPLE + "Winner : " + ChatColor.WHITE + "%s %dP(+%d)  " +
-                ChatColor.LIGHT_PURPLE + "Loser : " + ChatColor.WHITE + "%s %dP(-%dP)",
+                ChatColor.LIGHT_PURPLE + "Winner : " +
+                BPConfig.rankColors.get(wRank) + "%s " +
+                ChatColor.WHITE + "%dP(+%d)  " +
+                ChatColor.LIGHT_PURPLE + "Loser : " +
+                BPConfig.rankColors.get(lRank) + "%s " +
+                ChatColor.WHITE + "%dP(-%dP)",
                 winner.getName(),  winnerPoint, rate,
                 loser.getName(), loserPoint, rate));
 
         // 称号が変わったかどうかを確認する
-        String wRank = BPConfig.getRankFromPoint(winnerPoint);
-        String lRank = BPConfig.getRankFromPoint(loserPoint);
-
         if ( !wRank.equals(BPConfig.getRankFromPoint(lastWinnerPoint)) ) {
             BattlePoints.sendBroadcast(String.format(
                     ChatColor.RED + "%s は、%s にランクアップした！",
@@ -157,7 +161,7 @@ public class PlayerListener implements Listener {
         }
         if ( !lRank.equals(BPConfig.getRankFromPoint(lastLoserPoint)) ) {
             BattlePoints.sendBroadcast(String.format(
-                    ChatColor.RED + "%s は、%s にランクダウンした",
+                    ChatColor.GRAY + "%s は、%s にランクダウンした",
                     loser.getName(), lRank));
         }
 

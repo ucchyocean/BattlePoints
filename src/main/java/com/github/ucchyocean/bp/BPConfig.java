@@ -126,6 +126,8 @@ public class BPConfig {
 
         if ( rate <= 0 ) {
             rate = 1;
+        } else if ( rate >= winBasePoint * 2 ) {
+            rate = winBasePoint * 2 - 1;
         }
         return rate;
     }
