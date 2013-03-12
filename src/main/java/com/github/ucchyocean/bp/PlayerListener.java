@@ -55,7 +55,7 @@ public class PlayerListener implements Listener {
 
                 // 最終攻撃者を記録
                 BattlePoints.lastAttackData.setLastDamage(
-                        (Player)defender, (Player)attacker);
+                        (Player)defender, (Player)shooter);
             }
         }
     }
