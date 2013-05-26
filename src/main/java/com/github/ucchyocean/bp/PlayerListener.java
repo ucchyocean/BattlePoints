@@ -4,7 +4,6 @@
 package com.github.ucchyocean.bp;
 
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -13,73 +12,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /**
  * @author ucchy
  * BattlePointのプレイヤー関連イベントの監視クラス
  */
 public class PlayerListener implements Listener {
-
-    /**
-     * Entity が Entity にダメージを与えたときに発生するイベント
-     * @param event
-     */
-    @EventHandler
-    public void onEntityDamageEvent(EntityDamageByEntityEvent event) {
-
-        // 0以下のダメージのイベントは無視する
-        if (event.getDamage() <= 0) {
-            return;
-        }
-
-        // 加害者と被害者の取得
-        Entity attacker = event.getDamager();
-        Entity defender = event.getEntity();
-
-        // 両方プレイヤーの場合（＝剣や素手などの直接攻撃）
-        if ( attacker instanceof Player && defender instanceof Player ) {
-
-            // 最終攻撃者を記録
-            BattlePoints.lastAttackData.setLastDamage(
-                    (Player)defender, (Player)attacker);
-
-        // 加害者が飛来物(Projectile)、被害者がプレイヤーの場合
-        } else if ( attacker instanceof Projectile && defender instanceof Player ) {
-
-            Projectile projectile = (Projectile)attacker;
-            LivingEntity shooter = projectile.getShooter();
-
-            // 飛来物を打ったのがプレイヤーなら、
-            if ( shooter instanceof Player ) {
-
-                // 最終攻撃者を記録
-                BattlePoints.lastAttackData.setLastDamage(
-                        (Player)defender, (Player)shooter);
-            }
-        }
-    }
-
-    /**
-     * Player がサーバーに参加したときに発生するイベント
-     * @param event
-     */
-    @EventHandler
-    public void onPlayerJoinEvent(PlayerJoinEvent event) {
-
-        Player player = event.getPlayer();
-        int point = BattlePoints.data.getPoint(player.getName());
-        String rank = BPConfig.getRankFromPoint(point);
-
-        // 一応、最終攻撃履歴を消去しておく
-        BattlePoints.lastAttackData.removeLastDamage(player);
-
-        // Suffixの更新
-        BattlePoints.setPlayerSuffix(player, makeSuffix(rank, point));
-
-        // Colorの更新
-        BattlePoints.setPlayerColor(player, BPConfig.rankColors.get(rank).name().toLowerCase());
-    }
 
     /**
      * Player が死亡したときに発生するイベント
@@ -93,7 +32,6 @@ public class PlayerListener implements Listener {
         // killer を取得。
         // 直接攻撃で倒された場合は、killerをそのまま使う
         // 間接攻撃で倒された場合は、shooterを取得して使う
-        // それでも取得できないなら、LastAttackDataから取得する
         Player winner = loser.getKiller();
         if ( (winner != null) && (winner instanceof Projectile) ) {
             EntityDamageEvent cause = loser.getLastDamageCause();
@@ -102,15 +40,11 @@ public class PlayerListener implements Listener {
                 winner = (Player)shooter;
             }
         }
-        if ( (winner == null) || !(winner instanceof Player) ) {
-            winner = BattlePoints.lastAttackData.getLastAttacker(loser);
-        }
 
         // killer が取得できなかったら、ここで諦める
         if ( winner == null ) {
             //BattlePoints.sendBroadcast(String.format(
             //        ChatColor.LIGHT_PURPLE + "%s は自殺した！", loser.getName()));
-            BattlePoints.lastAttackData.removeLastDamage(loser);
             return;
         }
 
@@ -119,16 +53,14 @@ public class PlayerListener implements Listener {
         //        ChatColor.LIGHT_PURPLE + "%s は %s によって倒された！",
         //        loser.getName(), winner.getName()));
 
-        // 最終攻撃履歴の削除
-        BattlePoints.lastAttackData.removeLastDamage(winner);
-        BattlePoints.lastAttackData.removeLastDamage(loser);
-
         // ポイント計算
         int lastWinnerPoint = BattlePoints.data.getPoint(winner.getName());
         int lastLoserPoint = BattlePoints.data.getPoint(loser.getName());
         int rate = BPConfig.getEloRating(lastWinnerPoint, lastLoserPoint);
-        int winnerPoint = lastWinnerPoint + rate;
-        int loserPoint = lastLoserPoint - rate;
+        int winnerRate = rate + BPConfig.winOffsetPoint;
+        int loserRate = rate;
+        int winnerPoint = lastWinnerPoint + winnerRate;
+        int loserPoint = lastLoserPoint - loserRate;
 
         // 勝者、敗者が上限、下限に達したら、補正を行う
         if ( winnerPoint > 9999 ) {
@@ -150,8 +82,8 @@ public class PlayerListener implements Listener {
                 ChatColor.LIGHT_PURPLE + "Loser : " +
                 BPConfig.rankColors.get(lRank) + "%s " +
                 ChatColor.WHITE + "%dP(-%dP)",
-                winner.getName(),  winnerPoint, rate,
-                loser.getName(), loserPoint, rate));
+                winner.getName(),  winnerPoint, winnerRate,
+                loser.getName(), loserPoint, loserRate));
 
         // 称号が変わったかどうかを確認する
         if ( !wRank.equals(BPConfig.getRankFromPoint(lastWinnerPoint)) ) {
@@ -164,25 +96,21 @@ public class PlayerListener implements Listener {
                     ChatColor.GRAY + "%s は、%s にランクダウンした",
                     loser.getName(), lRank));
         }
-
-        // Suffixの更新
-        BattlePoints.setPlayerSuffix(winner, makeSuffix(wRank, winnerPoint));
-        BattlePoints.setPlayerSuffix(loser, makeSuffix(lRank, loserPoint));
-
-        // Colorの更新
-        BattlePoints.setPlayerColor(winner, BPConfig.rankColors.get(wRank).name().toLowerCase());
-        BattlePoints.setPlayerColor(loser, BPConfig.rankColors.get(lRank).name().toLowerCase());
     }
 
     /**
-     * 称号とポイントから、suffixerを生成する
-     * @param rank 称号
-     * @param point ポイント
-     * @return suffixer
+     * Playerがチャットで発言したときに呼び出されるイベント
+     * @param event
      */
-    private String makeSuffix(String rank, int point) {
+    @EventHandler
+    public void onPlayerChat(AsyncPlayerChatEvent event) {
+
+        Player player = event.getPlayer();
+        int point = BattlePoints.data.getPoint(player.getName());
+        String rank = BPConfig.getRankFromPoint(point);
         String symbol = BPConfig.rankSymbols.get(rank);
         ChatColor color = BPConfig.rankColors.get(rank);
-        return String.format("&f[%s%s%d&f]&r", color.toString(), symbol, point);
+        String format = String.format("<%s&f>[%s%s%d&f]&r %s", "%1$s", color.toString(), symbol, point, "%2$s");
+        event.setFormat(Utility.replaceColorCode(format));
     }
 }

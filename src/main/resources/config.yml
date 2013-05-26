@@ -4,26 +4,27 @@
 # @copyright  Copyright ucchy 2013
 
 initialPoint: 1500
-winBasePoint: 32
-winBonusPointPercent: 8
+winBasePoint: 16
+winOffsetPoint: 2
+winBonusPointPercent: 4
 ranks:
-  easy:
-    symbol: 'E'
+  novice:
+    symbol: 'N'
     color: 'blue'
     border: 0
-  normal:
-    symbol: 'N'
+  bronze:
+    symbol: 'B'
     color: 'aqua'
-    border: 1200
-  extra:
-    symbol: 'Ex'
+    border: 1700
+  silver:
+    symbol: 'S'
     color: 'gold'
-    border: 1400
-  hard:
-    symbol: 'H'
+    border: 1900
+  gold:
+    symbol: 'G'
     color: 'red'
-    border: 1600
-  lunatic:
-    symbol: 'L'
+    border: 2200
+  platinum:
+    symbol: 'P'
     color: 'light_purple'
-    border: 1800
+    border: 2500

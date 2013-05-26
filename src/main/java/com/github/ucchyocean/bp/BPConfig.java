@@ -23,6 +23,7 @@ public class BPConfig {
 
     public static int initialPoint;
     public static int winBasePoint;
+    public static int winOffsetPoint;
     public static int winBonusPointPercent;
     public static Hashtable<String, String> rankSymbols;
     public static Hashtable<String, ChatColor> rankColors;
@@ -56,6 +57,7 @@ public class BPConfig {
         // 各コンフィグの取得
         initialPoint = config.getInt("initialPoint", 1500);
         winBasePoint = config.getInt("winBasePoint", 16);
+        winOffsetPoint = config.getInt("winOffsetPoint", 2);
         winBonusPointPercent = config.getInt("winBonusPointPercent", 4);
 
         rankSymbols = new Hashtable<String, String>();
@@ -95,10 +97,10 @@ public class BPConfig {
             rankColors.put("platinum", ChatColor.LIGHT_PURPLE);
             rankBorders_temp = new Hashtable<String, Integer>();
             rankBorders_temp.put("novice", 0);
-            rankBorders_temp.put("bronze", 1400);
-            rankBorders_temp.put("silver", 1700);
-            rankBorders_temp.put("gold", 1900);
-            rankBorders_temp.put("platinum", 2200);
+            rankBorders_temp.put("bronze", 1700);
+            rankBorders_temp.put("silver", 2000);
+            rankBorders_temp.put("gold", 2400);
+            rankBorders_temp.put("platinum", 2900);
         }
 
         // rankBorders は、ここでソートを実行しておく
