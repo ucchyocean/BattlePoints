@@ -7,7 +7,10 @@ import java.io.File;
 import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.github.ucchyocean.ct.ColorTeaming;
 
 /**
  * @author ucchy
@@ -17,6 +20,7 @@ public class BattlePoints extends JavaPlugin {
 
     protected static BattlePoints instance;
     protected static BPData data;
+    protected static ColorTeaming colorteaming;
 
     /**
      * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
@@ -37,6 +41,20 @@ public class BattlePoints extends JavaPlugin {
 
         // 変数の初期化
         data = new BPData();
+
+        // ColorTeaming のロード
+        Plugin temp = getServer().getPluginManager().getPlugin("ColorTeaming");
+        if ( temp != null && temp instanceof ColorTeaming ) {
+            String ctversion = temp.getDescription().getVersion();
+            if ( Utility.isUpperVersion(ctversion, "1.5.9") ) {
+                colorteaming = (ColorTeaming)temp;
+                getLogger().info("ColorTeaming がロードされました。連携機能を有効にします。");
+            } else {
+                colorteaming = null;
+                getLogger().warning("ColorTeaming のバージョンが古いため、連携機能は無効になりました。");
+                getLogger().warning("連携機能を使用するには、ColorTeaming v1.5.9 以上が必要です。");
+            }
+        }
     }
 
     /**

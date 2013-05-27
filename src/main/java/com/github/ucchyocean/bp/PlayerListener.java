@@ -105,12 +105,14 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
 
-        Player player = event.getPlayer();
-        int point = BattlePoints.data.getPoint(player.getName());
-        String rank = BPConfig.getRankFromPoint(point);
-        String symbol = BPConfig.rankSymbols.get(rank);
-        ChatColor color = BPConfig.rankColors.get(rank);
-        String format = String.format("<%s&f>[%s%s%d&f]&r %s", "%1$s", color.toString(), symbol, point, "%2$s");
-        event.setFormat(Utility.replaceColorCode(format));
+        if ( BPConfig.displayPointOnChat ) {
+            Player player = event.getPlayer();
+            int point = BattlePoints.data.getPoint(player.getName());
+            String rank = BPConfig.getRankFromPoint(point);
+            String symbol = BPConfig.rankSymbols.get(rank);
+            ChatColor color = BPConfig.rankColors.get(rank);
+            String format = String.format("<%s&f>[%s%s%d&f]&r %s", "%1$s", color.toString(), symbol, point, "%2$s");
+            event.setFormat(Utility.replaceColorCode(format));
+        }
     }
 }

@@ -21,6 +21,8 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class BPConfig {
 
+    // TODO: ColorTeamingのタブリストに、ポイントを表示できるようにする
+    public static boolean displayPointOnChat;
     public static int initialPoint;
     public static int winBasePoint;
     public static int winOffsetPoint;
@@ -55,6 +57,7 @@ public class BPConfig {
         FileConfiguration config = BattlePoints.instance.getConfig();
 
         // 各コンフィグの取得
+        displayPointOnChat = config.getBoolean("displayPointOnChat", true);
         initialPoint = config.getInt("initialPoint", 1500);
         winBasePoint = config.getInt("winBasePoint", 16);
         winOffsetPoint = config.getInt("winOffsetPoint", 2);
@@ -74,7 +77,7 @@ public class BPConfig {
                     rankSymbols.put(rankName, rankName.substring(0, 1));
                 }
                 String color = config.getString("ranks." + rankName + ".color", "white");
-                rankColors.put(rankName, Utility.replaceColors(color));
+                rankColors.put(rankName, Utility.toChatColor(color));
                 if ( config.contains("ranks." + rankName + ".border") ) {
                     rankBorders_temp.put(rankName, config.getInt("ranks." + rankName + ".border") );
                 }

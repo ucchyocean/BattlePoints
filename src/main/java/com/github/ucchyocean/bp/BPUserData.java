@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import org.bukkit.ChatColor;
-
 /**
  * @author ucchy
  * ユーザーのポイントデータクラス
@@ -20,12 +18,6 @@ public class BPUserData {
 
     /** ポイント */
     public int point;
-
-    /** ユーザーの現在のランキング */
-    public String rank;
-
-    /** ユーザーの現在のランキングの色 */
-    public ChatColor color;
 
     /**
      * コンストラクタ。pointは初期値になる。
@@ -43,8 +35,6 @@ public class BPUserData {
     public BPUserData(String name, int point) {
         this.name = name;
         this.point = point;
-        this.rank = BPConfig.getRankFromPoint(point);
-        this.color = BPConfig.rankColors.get(rank);
     }
 
     /**
