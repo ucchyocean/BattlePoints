@@ -11,7 +11,6 @@ commands:
            /<command> rank [NumberOfView] - ポイントランキングを参照します。
            /<command> set (player) (point) - プレイヤーのポイントを設定します。
            /<command> team (number) - チームわけを実行します。ColorTeamingがロードされている必要があります。
-           /<command> leader (number) - チームから、一番ポイントの高い人を大将に選出します。ColorTeamingがロードされている必要があります。
            /<command> reload - config.ymlを再読み込みします。
 permissions:
   battlepoints.rank:

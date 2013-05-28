@@ -22,10 +22,11 @@ import com.github.ucchyocean.ct.Utility;
 public class BPCommand implements CommandExecutor {
 
     private static final String[] COMMANDS = {
-        "rank", "set", "reload", "team", "leader",
+        "rank", "set", "reload", "team",
     };
-    private static final String[] GROUP_COLORS =
-        {"red", "blue", "yellow", "green", "aqua", "gray", "dark_red", "dark_green", "dark_aqua"};
+    private static final String[] GROUP_COLORS = {
+        "red", "blue", "yellow", "green", "aqua", "gray", "dark_red", "dark_green", "dark_aqua"
+    };
 
     /**
      * @see org.bukkit.command.CommandExecutor#onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[])
@@ -112,11 +113,19 @@ public class BPCommand implements CommandExecutor {
         }
     }
 
+    /**
+     * BattlePointに応じてチーム分けをする
+     * @param sender
+     * @param numberOfGroups
+     * @return
+     */
     private boolean doTeaming(CommandSender sender, int numberOfGroups) {
+
+        ColorTeaming ct = BattlePoints.colorteaming;
 
         // ゲームモードがクリエイティブの人は除外する
         ArrayList<Player> tempPlayers =
-                ColorTeaming.getAllPlayersOnWorld(ColorTeaming.getCTConfig().getWorldNames());
+                ct.getAllPlayersOnWorld(ct.getCTConfig().getWorldNames());
         ArrayList<Player> players = new ArrayList<Player>();
         for ( Player p : tempPlayers ) {
             if ( p.getGameMode() != GameMode.CREATIVE ) {
@@ -130,24 +139,27 @@ public class BPCommand implements CommandExecutor {
         }
 
         // 全てのグループをいったん削除する
-        ColorTeaming.removeAllTeam();
+        ct.removeAllTeam();
 
         // ランキングデータを作成する
-        ArrayList<BPUserData> users = BattlePoints.data.getAllUserData();
+        ArrayList<BPUserData> users = new ArrayList<BPUserData>();
+        for ( Player p : players ) {
+            String name = p.getName();
+            users.add(new BPUserData(name, BattlePoints.data.getPoint(name)));
+        }
         BPUserData.sortUserData(users);
 
-        // TODO: オンラインユーザーのみ適用する
-
         // グループを設定していく
-        for ( int i=0; i<players.size(); i++ ) {
+        for ( int i=0; i<users.size(); i++ ) {
             int group = i % numberOfGroups;
             String color = GROUP_COLORS[group];
-            ColorTeaming.addPlayerTeam(players.get(i), color);
+            Player player = BattlePoints.getPlayerExact(users.get(i).name);
+            ct.addPlayerTeam(player, color);
         }
 
         // 各グループに、通知メッセージを出す
         for ( int i=0; i<numberOfGroups; i++ ) {
-            ColorTeaming.sendInfoToTeamChat(GROUP_COLORS[i],
+            ct.sendInfoToTeamChat(GROUP_COLORS[i],
                     "あなたは " +
                     Utility.replaceColors(GROUP_COLORS[i]) +
                     GROUP_COLORS[i] +
@@ -156,16 +168,15 @@ public class BPCommand implements CommandExecutor {
         }
 
         // キルデス情報のクリア
-        ColorTeaming.killDeathCounts.clear();
-        ColorTeaming.killDeathUserCounts.clear();
+        ct.clearKillDeathPoints();
 
         // スコアボードの作成
-        ColorTeaming.makeSidebar();
-        ColorTeaming.makeTabkeyListScore();
-        ColorTeaming.makeBelowNameScore();
+        ct.makeSidebar();
+        ct.makeTabkeyListScore();
+        ct.makeBelowNameScore();
 
         // メンバー情報をlastdataに保存する
-        ColorTeaming.sdhandler.save("lastdata");
+        ct.getCTSaveDataHandler().save("lastdata");
 
         return true;
     }
