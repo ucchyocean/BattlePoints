@@ -46,7 +46,7 @@ public class BattlePoints extends JavaPlugin {
         if ( getServer().getPluginManager().isPluginEnabled("ColorTeaming") ) {
             Plugin temp = getServer().getPluginManager().getPlugin("ColorTeaming");
             String ctversion = temp.getDescription().getVersion();
-            if ( Utility.isUpperVersion(ctversion, "1.5.9") ) {
+            if ( Utility.isUpperVersion(ctversion, "2.0.0") ) {
                 colorteaming = (ColorTeaming)temp;
                 getLogger().info("ColorTeaming がロードされました。連携機能を有効にします。");
                 colorteaming.getAPI().setCustomScoreCriteria(new BPCustomScore());

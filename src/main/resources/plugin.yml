@@ -3,6 +3,8 @@ main: com.github.ucchyocean.bp.BattlePoints
 version: 1.2.1
 author: ucchy
 description: Points system plugin for PVP
+depend: []
+softdepend: [ColorTeaming]
 commands:
   battlepoints:
     description: Points system plugin for PVP
