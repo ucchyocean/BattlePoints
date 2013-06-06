@@ -12,12 +12,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.github.ucchyocean.ct.ColorTeaming;
+import com.github.ucchyocean.ct.ColorTeamingAPI;
+import com.github.ucchyocean.ct.ColorTeamingConfig;
 import com.github.ucchyocean.ct.Utility;
 
 /**
- * @author ucchy
  * BattlePointsのコマンド実行クラス
+ * @author ucchy
  */
 public class BPCommand implements CommandExecutor {
 
@@ -121,11 +122,12 @@ public class BPCommand implements CommandExecutor {
      */
     private boolean doTeaming(CommandSender sender, int numberOfGroups) {
 
-        ColorTeaming ct = BattlePoints.colorteaming;
+        ColorTeamingAPI api = BattlePoints.colorteaming.getAPI();
+        ColorTeamingConfig ctconf = BattlePoints.colorteaming.getCTConfig();
 
         // ゲームモードがクリエイティブの人は除外する
         ArrayList<Player> tempPlayers =
-                ct.getAllPlayersOnWorld(ct.getCTConfig().getWorldNames());
+                api.getAllPlayersOnWorld(ctconf.getWorldNames());
         ArrayList<Player> players = new ArrayList<Player>();
         for ( Player p : tempPlayers ) {
             if ( p.getGameMode() != GameMode.CREATIVE ) {
@@ -139,7 +141,7 @@ public class BPCommand implements CommandExecutor {
         }
 
         // 全てのグループをいったん削除する
-        ct.removeAllTeam();
+        api.removeAllTeam();
 
         // ランキングデータを作成する
         ArrayList<BPUserData> users = new ArrayList<BPUserData>();
@@ -154,12 +156,12 @@ public class BPCommand implements CommandExecutor {
             int group = i % numberOfGroups;
             String color = GROUP_COLORS[group];
             Player player = BattlePoints.getPlayerExact(users.get(i).name);
-            ct.addPlayerTeam(player, color);
+            api.addPlayerTeam(player, color);
         }
 
         // 各グループに、通知メッセージを出す
         for ( int i=0; i<numberOfGroups; i++ ) {
-            ct.sendInfoToTeamChat(GROUP_COLORS[i],
+            api.sendInfoToTeamChat(GROUP_COLORS[i],
                     "あなたは " +
                     Utility.replaceColors(GROUP_COLORS[i]) +
                     GROUP_COLORS[i] +
@@ -168,15 +170,15 @@ public class BPCommand implements CommandExecutor {
         }
 
         // キルデス情報のクリア
-        ct.clearKillDeathPoints();
+        api.clearKillDeathPoints();
 
         // スコアボードの作成
-        ct.makeSidebar();
-        ct.makeTabkeyListScore();
-        ct.makeBelowNameScore();
+        api.makeSidebarScore();
+        api.makeTabkeyListScore();
+        api.makeBelowNameScore();
 
         // メンバー情報をlastdataに保存する
-        ct.getCTSaveDataHandler().save("lastdata");
+        api.getCTSaveDataHandler().save("lastdata");
 
         return true;
     }

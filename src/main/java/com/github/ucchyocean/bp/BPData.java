@@ -12,8 +12,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 /**
- * @author ucchy
  * BattlePointsのデータファイル(points.yml)を管理するクラス
+ * @author ucchy
  */
 public class BPData {
 

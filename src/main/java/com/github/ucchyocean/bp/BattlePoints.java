@@ -9,16 +9,14 @@ import java.util.ArrayList;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Objective;
 
 import com.github.ucchyocean.ct.ColorTeaming;
-import com.github.ucchyocean.ct.scoreboard.CTScoreInterface;
 
 /**
- * @author ucchy
  * バトルポイントシステム プラグイン
+ * @author ucchy
  */
-public class BattlePoints extends JavaPlugin implements CTScoreInterface {
+public class BattlePoints extends JavaPlugin {
 
     protected static BattlePoints instance;
     protected static BPData data;
@@ -45,17 +43,21 @@ public class BattlePoints extends JavaPlugin implements CTScoreInterface {
         data = new BPData();
 
         // ColorTeaming のロード
-        Plugin temp = getServer().getPluginManager().getPlugin("ColorTeaming");
-        if ( temp != null && temp instanceof ColorTeaming ) {
+        if ( getServer().getPluginManager().isPluginEnabled("ColorTeaming") ) {
+            Plugin temp = getServer().getPluginManager().getPlugin("ColorTeaming");
             String ctversion = temp.getDescription().getVersion();
             if ( Utility.isUpperVersion(ctversion, "1.5.9") ) {
                 colorteaming = (ColorTeaming)temp;
                 getLogger().info("ColorTeaming がロードされました。連携機能を有効にします。");
+                colorteaming.getAPI().setCustomScoreCriteria(new BPCustomScore());
             } else {
                 colorteaming = null;
                 getLogger().warning("ColorTeaming のバージョンが古いため、連携機能は無効になりました。");
                 getLogger().warning("連携機能を使用するには、ColorTeaming v1.5.9 以上が必要です。");
             }
+        } else {
+            colorteaming = null;
+            getLogger().warning("ColorTeaming がロードされていないため、連携機能は無効になりました。");
         }
     }
 
@@ -95,23 +97,5 @@ public class BattlePoints extends JavaPlugin implements CTScoreInterface {
             result.add(p);
         }
         return result;
-    }
-
-    /**
-     * @see com.github.ucchyocean.ct.scoreboard.CTScoreInterface#refreshScore(org.bukkit.scoreboard.Objective)
-     */
-    public void refreshScore(Objective objective) {
-        Player[] temp = instance.getServer().getOnlinePlayers();
-        for ( Player p : temp ) {
-            int point = BattlePoints.data.getPoint(p.getName());
-            objective.getScore(p).setScore(point);
-        }
-    }
-
-    /**
-     * @see com.github.ucchyocean.ct.scoreboard.CTScoreInterface#getUnit()
-     */
-    public String getUnit() {
-        return "P";
     }
 }

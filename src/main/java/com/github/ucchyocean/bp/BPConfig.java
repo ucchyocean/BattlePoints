@@ -16,12 +16,11 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
- * @author ucchy
  * BattlePointsの設定ファイルを管理するクラス
+ * @author ucchy
  */
 public class BPConfig {
 
-    // TODO: ColorTeamingのタブリストに、ポイントを表示できるようにする
     public static boolean displayPointOnChat;
     public static int initialPoint;
     public static int winBasePoint;

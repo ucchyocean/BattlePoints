@@ -18,8 +18,8 @@ import java.util.zip.ZipEntry;
 import org.bukkit.ChatColor;
 
 /**
- * @author ucchy
  * ユーティリティクラス
+ * @author ucchy
  */
 public class Utility {
 

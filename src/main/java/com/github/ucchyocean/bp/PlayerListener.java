@@ -15,8 +15,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /**
- * @author ucchy
  * BattlePointのプレイヤー関連イベントの監視クラス
+ * @author ucchy
  */
 public class PlayerListener implements Listener {
 
