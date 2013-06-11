@@ -3,6 +3,7 @@
  */
 package com.github.ucchyocean.bp;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -13,12 +14,15 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
  * BattlePointのプレイヤー関連イベントの監視クラス
  * @author ucchy
  */
 public class PlayerListener implements Listener {
+
+    private static String prefix = Messages.get("prefix");
 
     /**
      * Player が死亡したときに発生するイベント
@@ -74,27 +78,29 @@ public class PlayerListener implements Listener {
         BattlePoints.data.setPoint(loser.getName(), loserPoint);
         String wRank = BPConfig.getRankFromPoint(winnerPoint);
         String lRank = BPConfig.getRankFromPoint(loserPoint);
+        String wColor = BPConfig.rankColors.get(wRank).toString();
+        String lColor = BPConfig.rankColors.get(lRank).toString();
 
-        BattlePoints.sendBroadcast(String.format(
-                ChatColor.LIGHT_PURPLE + "Winner : " +
-                BPConfig.rankColors.get(wRank) + "%s " +
-                ChatColor.WHITE + "%dP(+%d)  " +
-                ChatColor.LIGHT_PURPLE + "Loser : " +
-                BPConfig.rankColors.get(lRank) + "%s " +
-                ChatColor.WHITE + "%dP(-%dP)",
-                winner.getName(),  winnerPoint, winnerRate,
-                loser.getName(), loserPoint, loserRate));
+        broadcastMessage("battleResult",
+                wColor, winner.getName(),  winnerPoint, winnerRate,
+                lColor, loser.getName(), loserPoint, loserRate);
 
         // 称号が変わったかどうかを確認する
         if ( !wRank.equals(BPConfig.getRankFromPoint(lastWinnerPoint)) ) {
-            BattlePoints.sendBroadcast(String.format(
-                    ChatColor.RED + "%s は、%s にランクアップした！",
-                    winner.getName(), wRank));
+            broadcastMessage("rankup", winner.getName(), wRank);
         }
         if ( !lRank.equals(BPConfig.getRankFromPoint(lastLoserPoint)) ) {
-            BattlePoints.sendBroadcast(String.format(
-                    ChatColor.GRAY + "%s は、%s にランクダウンした",
-                    loser.getName(), lRank));
+            broadcastMessage("rankdown", loser.getName(), lRank);
+        }
+
+        // Vault連携の場合は、ここでSuffixを設定する
+        if ( BPConfig.displayPointOnChat && BPConfig.useVault && BattlePoints.vaultChat != null ) {
+            String wSymbol = BPConfig.rankSymbols.get(wRank);
+            String wSuf = String.format("&f[%s%s%d&f]", wColor, wSymbol, winnerPoint);
+            BattlePoints.vaultChat.setPlayerSuffix(winner, wSuf);
+            String lSymbol = BPConfig.rankSymbols.get(lRank);
+            String lSuf = String.format("&f[%s%s%d&f]", lColor, lSymbol, loserPoint);
+            BattlePoints.vaultChat.setPlayerSuffix(loser, lSuf);
         }
     }
 
@@ -105,7 +111,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
 
-        if ( BPConfig.displayPointOnChat ) {
+        if ( BPConfig.displayPointOnChat && !BPConfig.useVault ) {
             Player player = event.getPlayer();
             int point = BattlePoints.data.getPoint(player.getName());
             String rank = BPConfig.getRankFromPoint(point);
@@ -114,5 +120,39 @@ public class PlayerListener implements Listener {
             String format = String.format("<%s&f>[%s%s%d&f]&r %s", "%1$s", color.toString(), symbol, point, "%2$s");
             event.setFormat(Utility.replaceColorCode(format));
         }
+    }
+
+    /**
+     * Playerがサーバーに参加したときに呼び出されるイベント
+     * @param event
+     */
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+
+        // Vault連携の場合は、ここでSuffixを設定する
+        if ( BPConfig.displayPointOnChat && BPConfig.useVault && BattlePoints.vaultChat != null ) {
+            Player player = event.getPlayer();
+            int point = BattlePoints.data.getPoint(player.getName());
+            String rank = BPConfig.getRankFromPoint(point);
+            String symbol = BPConfig.rankSymbols.get(rank);
+            ChatColor color = BPConfig.rankColors.get(rank);
+            String suffix = String.format("&f[%s%s%d&f]", color.toString(), symbol, point);
+            BattlePoints.vaultChat.setPlayerSuffix(player, suffix);
+        }
+    }
+
+    /**
+     * メッセージリソースを取得し、ブロードキャストする
+     * @param key メッセージキー
+     * @param args メッセージの引数
+     * @return メッセージ
+     */
+    private void broadcastMessage(String key, Object... args) {
+
+        String msg = Messages.get(key, args);
+        if ( msg.equals("") ) {
+            return;
+        }
+        Bukkit.broadcastMessage(Utility.replaceColorCode(prefix + msg));
     }
 }

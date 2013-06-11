@@ -1,8 +1,9 @@
-# Battle Points Plugin 1.2.1
+# Battle Points Plugin 2.0.0
 # @author     ucchy
 # @license    GPLv3
 # @copyright  Copyright ucchy 2013
 
+useVault: false
 displayPointOnChat: true
 initialPoint: 1500
 winBasePoint: 16

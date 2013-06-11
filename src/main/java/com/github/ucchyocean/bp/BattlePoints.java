@@ -6,8 +6,10 @@ package com.github.ucchyocean.bp;
 import java.io.File;
 import java.util.ArrayList;
 
+import net.milkbowl.vault.chat.Chat;
+
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.github.ucchyocean.ct.ColorTeaming;
@@ -21,6 +23,7 @@ public class BattlePoints extends JavaPlugin {
     protected static BattlePoints instance;
     protected static BPData data;
     protected static ColorTeaming colorteaming;
+    protected static Chat vaultChat;
 
     /**
      * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
@@ -33,6 +36,9 @@ public class BattlePoints extends JavaPlugin {
         // 設定の読み込み処理
         BPConfig.reloadConfig();
 
+        // メッセージの初期化
+        Messages.initialize();
+
         // コマンドをサーバーに登録
         getCommand("battlepoints").setExecutor(new BPCommand());
 
@@ -43,22 +49,39 @@ public class BattlePoints extends JavaPlugin {
         data = new BPData();
 
         // ColorTeaming のロード
-        if ( getServer().getPluginManager().isPluginEnabled("ColorTeaming") ) {
-            Plugin temp = getServer().getPluginManager().getPlugin("ColorTeaming");
-            String ctversion = temp.getDescription().getVersion();
-            if ( Utility.isUpperVersion(ctversion, "2.0.0") ) {
-                colorteaming = (ColorTeaming)temp;
-                getLogger().info("ColorTeaming がロードされました。連携機能を有効にします。");
-                colorteaming.getAPI().setCustomScoreCriteria(new BPCustomScore());
-            } else {
-                colorteaming = null;
-                getLogger().warning("ColorTeaming のバージョンが古いため、連携機能は無効になりました。");
-                getLogger().warning("連携機能を使用するには、ColorTeaming v1.5.9 以上が必要です。");
+//        if ( getServer().getPluginManager().isPluginEnabled("ColorTeaming") ) {
+//            Plugin temp = getServer().getPluginManager().getPlugin("ColorTeaming");
+//            String ctversion = temp.getDescription().getVersion();
+//            if ( Utility.isUpperVersion(ctversion, "2.0.0") ) {
+//                colorteaming = (ColorTeaming)temp;
+//                getLogger().info("ColorTeaming がロードされました。連携機能を有効にします。");
+//                colorteaming.getAPI().setCustomScoreCriteria("battlepoints", new BPCustomScore());
+//            } else {
+//                colorteaming = null;
+//                getLogger().warning("ColorTeaming のバージョンが古いため、連携機能は無効になりました。");
+//                getLogger().warning("連携機能を使用するには、ColorTeaming v1.5.9 以上が必要です。");
+//            }
+//        } else {
+//            colorteaming = null;
+//            getLogger().warning("ColorTeaming がロードされていないため、連携機能は無効になりました。");
+//        }
+
+        // Vault経由のチャット装飾プラグインのロード
+        if ( BPConfig.useVault && getServer().getPluginManager().isPluginEnabled("Vault") ) {
+            RegisteredServiceProvider<Chat> chatProvider =
+                    getServer().getServicesManager().getRegistration(Chat.class);
+            if ( chatProvider != null ) {
+                vaultChat = chatProvider.getProvider();
             }
-        } else {
-            colorteaming = null;
-            getLogger().warning("ColorTeaming がロードされていないため、連携機能は無効になりました。");
         }
+    }
+
+    /**
+     * プラグインのデータフォルダを返す
+     * @return プラグインのデータフォルダ
+     */
+    protected static File getConfigFolder() {
+        return instance.getDataFolder();
     }
 
     /**

@@ -21,6 +21,7 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class BPConfig {
 
+    public static boolean useVault;
     public static boolean displayPointOnChat;
     public static int initialPoint;
     public static int winBasePoint;
@@ -56,6 +57,7 @@ public class BPConfig {
         FileConfiguration config = BattlePoints.instance.getConfig();
 
         // 各コンフィグの取得
+        useVault = config.getBoolean("useVault", false);
         displayPointOnChat = config.getBoolean("displayPointOnChat", true);
         initialPoint = config.getInt("initialPoint", 1500);
         winBasePoint = config.getInt("winBasePoint", 16);
@@ -121,7 +123,7 @@ public class BPConfig {
      * イロレーティングで、変動するポイント数を算出する。
      * @param winnerPoint 勝者の変動前ポイント
      * @param loserPoint 敗者の変動前ポイント
-     * @return
+     * @return 移動するポイント
      */
     public static int getEloRating(int winnerPoint, int loserPoint) {
 
