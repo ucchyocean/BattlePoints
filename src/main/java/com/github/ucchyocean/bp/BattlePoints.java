@@ -63,7 +63,6 @@ public class BattlePoints extends JavaPlugin {
 //            }
 //        } else {
 //            colorteaming = null;
-//            getLogger().warning("ColorTeaming がロードされていないため、連携機能は無効になりました。");
 //        }
 
         // Vault経由のチャット装飾プラグインのロード
@@ -120,5 +119,13 @@ public class BattlePoints extends JavaPlugin {
             result.add(p);
         }
         return result;
+    }
+
+    /**
+     * ポイントデータを返す
+     * @return ポイントデータ
+     */
+    public BPData getBPData() {
+        return data;
     }
 }
