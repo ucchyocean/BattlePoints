@@ -21,15 +21,15 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class BPConfig {
 
-    public static boolean useVault;
-    public static boolean displayPointOnChat;
-    public static int initialPoint;
-    public static int winBasePoint;
-    public static int winOffsetPoint;
-    public static int winBonusPointPercent;
-    public static Hashtable<String, String> rankSymbols;
-    public static Hashtable<String, ChatColor> rankColors;
-    public static ArrayList<Entry<String, Integer>> rankBorders;
+    protected static boolean useVault;
+    protected static boolean displayPointOnChat;
+    protected static int initialPoint;
+    protected static int winBasePoint;
+    protected static int winOffsetPoint;
+    protected static int winBonusPointPercent;
+    protected static Hashtable<String, String> rankSymbols;
+    protected static Hashtable<String, ChatColor> rankColors;
+    protected static ArrayList<Entry<String, Integer>> rankBorders;
 
     /**
      * config.ymlの読み出し処理。

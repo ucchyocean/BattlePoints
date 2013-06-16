@@ -121,6 +121,19 @@ public class Utility {
     }
 
     /**
+     * ColorMeの色設定を、ChatColorクラスに変換する
+     * @param color ColorMeの色設定
+     * @return ChatColorクラス
+     */
+    public static ChatColor replaceColors(String color) {
+
+        if ( isValidColor(color) ) {
+            return ChatColor.valueOf(color.toUpperCase());
+        }
+        return ChatColor.WHITE;
+    }
+
+    /**
      * 文字列が整数値に変換可能かどうかを判定する
      * @param source 変換対象の文字列
      * @return 整数に変換可能かどうか
