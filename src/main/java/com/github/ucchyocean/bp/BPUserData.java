@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 /**
  * ユーザーのポイントデータクラス
@@ -90,9 +91,24 @@ public class BPUserData {
      */
     public static void sortUserData(ArrayList<BPUserData> data) {
 
-        Collections.sort(data, new Comparator<BPUserData>(){
-            public int compare(BPUserData ent1, BPUserData ent2){
+        Collections.sort(data, new Comparator<BPUserData>() {
+            public int compare(BPUserData ent1, BPUserData ent2) {
                 return ent2.point - ent1.point;
+            }
+        });
+    }
+
+    /**
+     * ArrayList&lt;Player&gt; 型の配列を、ポイント降順にソートする。
+     * @param data ソート対象の配列
+     */
+    public static void sortPlayerByPoint(ArrayList<Player> data) {
+
+        Collections.sort(data, new Comparator<Player>() {
+            public int compare(Player ent1, Player ent2) {
+                BPUserData data1 = getData(ent1.getName());
+                BPUserData data2 = getData(ent2.getName());
+                return data2.point - data1.point;
             }
         });
     }
@@ -153,26 +169,5 @@ public class BPUserData {
         }
 
         return results;
-    }
-
-    public static void updateDatas(File oldFile) {
-
-        YamlConfiguration old = YamlConfiguration.loadConfiguration(oldFile);
-
-        if ( saveFolder == null ) {
-            saveFolder = new File(
-                    BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
-            if ( !saveFolder.exists() && !saveFolder.isDirectory() ) {
-                saveFolder.mkdirs();
-            }
-        }
-
-        for ( String key : old.getKeys(false) ) {
-            int point = old.getInt(key);
-            BPUserData userdata = new BPUserData(key, point, 0, 0);
-            userdata.save();
-        }
-
-        oldFile.delete();
     }
 }

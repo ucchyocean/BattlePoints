@@ -15,17 +15,13 @@ import org.bukkit.plugin.Plugin;
 
 import com.github.ucchyocean.ct.ColorTeaming;
 import com.github.ucchyocean.ct.ColorTeamingAPI;
-import com.github.ucchyocean.ct.ColorTeamingConfig;
+import com.github.ucchyocean.ct.config.ColorTeamingConfig;
 
 /**
  * BPCommandクラスから、ColorTeaming連携部分を取り出してカプセル化したクラス
  * @author ucchy
  */
 public class BPCTCommand {
-
-    private static final String[] GROUP_COLORS = {
-        "red", "blue", "yellow", "green", "aqua", "gray", "dark_red", "dark_green", "dark_aqua"
-    };
 
     private ColorTeaming colorteaming;
 
@@ -59,44 +55,11 @@ public class BPCTCommand {
             return false;
         }
 
-        // 全てのグループをいったん削除する
-        api.removeAllTeam();
-
-        // ランキングデータを作成する
-        ArrayList<BPUserData> users = new ArrayList<BPUserData>();
-        for ( Player p : players ) {
-            users.add(BPUserData.getData(p.getName()));
-        }
-        BPUserData.sortUserData(users);
-
-        // グループを設定していく
-        for ( int i=0; i<users.size(); i++ ) {
-            int group = i % numberOfGroups;
-            String color = GROUP_COLORS[group];
-            Player player = BattlePoints.getPlayerExact(users.get(i).name);
-            api.addPlayerTeam(player, color);
-        }
-
-        // 各グループに、通知メッセージを出す
-        for ( int i=0; i<numberOfGroups; i++ ) {
-            api.sendInfoToTeamChat(GROUP_COLORS[i],
-                    "あなたは " +
-                    Utility.replaceColors(GROUP_COLORS[i]) +
-                    GROUP_COLORS[i] +
-                    ChatColor.GREEN +
-                    " グループになりました。");
-        }
-
-        // キルデス情報のクリア
-        api.clearKillDeathPoints();
-
-        // スコアボードの作成
-        api.makeSidebarScore();
-        api.makeTabkeyListScore();
-        api.makeBelowNameScore();
-
-        // メンバー情報をlastdataに保存する
-        api.getCTSaveDataHandler().save("lastdata");
+        // ポイント順でソートする
+        BPUserData.sortPlayerByPoint(players);
+        
+        // チームわけを実行する
+        api.makeColorTeamsWithOrderSelection(players, numberOfGroups);
 
         return true;
     }

@@ -46,12 +46,11 @@ public class BattlePoints extends JavaPlugin {
         if ( getServer().getPluginManager().isPluginEnabled("ColorTeaming") ) {
             colorteaming = getServer().getPluginManager().getPlugin("ColorTeaming");
             String ctversion = colorteaming.getDescription().getVersion();
-            if ( Utility.isUpperVersion(ctversion, "2.0.0") ) {
+            if ( Utility.isUpperVersion(ctversion, "2.1.0") ) {
                 getLogger().info("ColorTeaming がロードされました。連携機能を有効にします。");
-                new BPCustomScore(getServer(), colorteaming);
             } else {
                 getLogger().warning("ColorTeaming のバージョンが古いため、連携機能は無効になりました。");
-                getLogger().warning("連携機能を使用するには、ColorTeaming v2.0.0 以上が必要です。");
+                getLogger().warning("連携機能を使用するには、ColorTeaming v2.1.0 以上が必要です。");
             }
         }
 
@@ -68,12 +67,6 @@ public class BattlePoints extends JavaPlugin {
             if ( chatProvider != null ) {
                 vaultChat = chatProvider.getProvider();
             }
-        }
-
-        // 未アップデートなら、アップデートする
-        File oldFile = new File(getDataFolder(), "points.yml");
-        if ( oldFile.exists() ) {
-            BPUserData.updateDatas(oldFile);
         }
     }
 
