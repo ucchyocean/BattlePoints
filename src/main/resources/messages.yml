@@ -1,11 +1,9 @@
 # Battle Points Plugin 2.2.1
 # @author     ucchy
-# @license    GPLv3
+# @license    LGPLv3
 # @copyright  Copyright ucchy 2013
 
 prefix: '&f[BattlePoints]'
 rankup: '&c%s は、%s にランクアップした！'
 rankdown: '&7%s は、%s にランクダウンした'
 battleResult: '&dWinner: %s%12s &c%d&fP(+%dP), &dLoser: %s%12s &c%d&fP(-%dP)'
-battleResultWinner: '&dWinner : %s%12s &c%d&fP(+%dP), &c%d&fK, &c%d&fD'
-battleResultLoser: '&dLoser  : %s%12s &c%d&fP(-%dP), &c%d&fK, &c%d&fD'
