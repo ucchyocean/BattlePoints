@@ -132,8 +132,8 @@ public class BPUserData {
 
         Collections.sort(data, new Comparator<BPUserData>() {
             public int compare(BPUserData ent1, BPUserData ent2) {
-                double kd1 = (double)ent1.kills / (double)ent1.deaths;
-                double kd2 = (double)ent2.kills / (double)ent2.deaths;
+                double kd1 = ent1.getKDRate();
+                double kd2 = ent2.getKDRate();
                 if ( kd1 < kd2 ) {
                     return 1;
                 } else if ( kd1 > kd2 ) {
@@ -202,5 +202,19 @@ public class BPUserData {
         }
 
         return results;
+    }
+    
+    /**
+     * K/Dレートを取得する
+     * @return K/Dレート
+     */
+    public double getKDRate() {
+        
+        if ( deaths == 0 && kills > 0 ) 
+            return 999.0;
+        else if ( deaths == 0 && kills == 0 ) 
+            return 0;
+        else 
+            return (double)kills / (double)deaths;
     }
 }

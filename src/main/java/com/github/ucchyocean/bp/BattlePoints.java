@@ -70,14 +70,16 @@ public class BattlePoints extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
 
         // Vault経由のチャット装飾プラグインのロード
-        vcbridge = VaultChatBridge.load();
+        if ( getServer().getPluginManager().isPluginEnabled("Vault") ) {
+            vcbridge = VaultChatBridge.load();
+        }
         
         // objectiveの取得
         Scoreboard sb = getServer().getScoreboardManager().getMainScoreboard();
         objective = sb.getObjective("battlepoints");
         if ( objective == null ) {
             objective = sb.registerNewObjective("battlepoints", "dummy");
-            objective.setDisplayName("ポイント");
+            objective.setDisplayName("points");
         }
         
         // 全プレイヤーのスコア更新

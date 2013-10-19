@@ -56,6 +56,9 @@ public class PlayerListener implements Listener {
 
         // ポイント計算
         BattlePoints.instance.changePoints(winner, loser);
+        
+        // 死亡メッセージを消す
+        event.setDeathMessage("");
     }
 
     /**

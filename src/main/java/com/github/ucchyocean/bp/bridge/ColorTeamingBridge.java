@@ -185,6 +185,9 @@ public class ColorTeamingBridge implements Listener {
             BPUserData data = BPUserData.getData(name);
             sendMessage(player, "teamWonBonus", displayName, bonus, data.point);
         }
+        
+        // メンバーのキャッシュをクリアする
+        membersCache.clear();
     }
     
     /**

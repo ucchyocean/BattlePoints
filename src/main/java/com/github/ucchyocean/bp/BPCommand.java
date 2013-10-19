@@ -132,7 +132,7 @@ public class BPCommand implements CommandExecutor {
             BPUserData data = users.get(i);
             String rank = config.getRankFromPoint(users.get(i).point);
             String color = config.getColorFromRank(rank);
-            double rate = (double)data.kills / (double)data.deaths;
+            double rate = data.getKDRate();
             sender.sendMessage(String.format(ChatColor.RED +
                     "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
                     (i+1), color, users.get(i).name, rank,
@@ -160,7 +160,7 @@ public class BPCommand implements CommandExecutor {
             BPUserData data = users.get(i);
             String rank = config.getRankFromPoint(users.get(i).point);
             String color = config.getColorFromRank(rank);
-            double rate = (double)data.kills / (double)data.deaths;
+            double rate = data.getKDRate();
             sender.sendMessage(String.format(ChatColor.RED +
                     "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
                     (i+1), color, users.get(i).name, rank,
