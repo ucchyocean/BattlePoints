@@ -11,7 +11,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
 
 /**
  * BattlePointsのコマンド実行クラス
@@ -20,17 +19,17 @@ import org.bukkit.plugin.Plugin;
 public class BPCommand implements CommandExecutor {
 
     private static final String[] COMMANDS = {
-        "rank", "set", "reload", "team",
+        "rank", "kdrank", "set", "reload", "team",
     };
-
-    private BPCTCommand bpctcommand;
-
-    public BPCommand(Plugin colorteaming) {
-        if ( colorteaming != null ) {
-            bpctcommand = new BPCTCommand(colorteaming);
-        } else {
-            bpctcommand = null;
-        }
+    
+    private BattlePoints plugin;
+    
+    /**
+     * コンストラクタ
+     * @param plugin 
+     */
+    public BPCommand(BattlePoints plugin) {
+        this.plugin = plugin;
     }
 
     /**
@@ -60,12 +59,18 @@ public class BPCommand implements CommandExecutor {
             viewRank(sender, numberOfView);
             return true;
 
+        } else if ( args[0].equalsIgnoreCase("kdrank") ) {
+            int numberOfView = 10;
+            if ( args.length >= 2 && Utility.tryIntParse(args[1]) ) {
+                numberOfView = Integer.parseInt(args[1]);
+            }
+            viewKDRank(sender, numberOfView);
+            return true;
+
         } else if ( args[0].equalsIgnoreCase("set") ) {
             if ( args.length >= 3 && Utility.tryIntParse(args[2]) ) {
                 int point = Integer.parseInt(args[2]);
-                BPUserData data = BPUserData.getData(args[1]);
-                data.point = point;
-                data.save();
+                plugin.setPoint(args[1], point);
                 sender.sendMessage(ChatColor.GRAY +
                         "プレイヤー" + args[1] + "のポイントを" + point + "に設定しました。");
                 return true;
@@ -74,13 +79,25 @@ public class BPCommand implements CommandExecutor {
                 return false;
             }
 
+        } else if ( args[0].equalsIgnoreCase("add") ) {
+            if ( args.length >= 3 && Utility.tryIntParse(args[2]) ) {
+                int point = Integer.parseInt(args[2]);
+                plugin.addPoint(args[1], point);
+                sender.sendMessage(ChatColor.GRAY +
+                        "プレイヤー" + args[1] + "のポイントを" + point + "増やしました。");
+                return true;
+            } else {
+                sender.sendMessage(ChatColor.RED + "パラメータの指定が正しくありません。");
+                return false;
+            }
+
         } else if ( args[0].equalsIgnoreCase("reload") ) {
-            BPConfig.reloadConfig();
-            sender.sendMessage(ChatColor.GRAY + "config.ymlを再読み込みしました。");
+            plugin.reloadDatas();
+            sender.sendMessage(ChatColor.GRAY + "設定を再読み込みしました。");
             return true;
 
         } else if ( args[0].equalsIgnoreCase("team") ) {
-            if ( bpctcommand == null ) {
+            if ( BattlePoints.ctbridge == null ) {
                 sender.sendMessage(ChatColor.RED + "ColorTeaming連携機能が無効のため、このコマンドは使えません。");
                 return false;
             }
@@ -89,7 +106,7 @@ public class BPCommand implements CommandExecutor {
                 numberOfGroups = Integer.parseInt(args[1]);
             }
 
-            return bpctcommand.doTeaming(sender, numberOfGroups);
+            return BattlePoints.ctbridge.doTeaming(sender, numberOfGroups);
         }
 
         return false;
@@ -102,6 +119,7 @@ public class BPCommand implements CommandExecutor {
      */
     private void viewRank(CommandSender sender, int numberOfView) {
 
+        BPConfig config = plugin.getBPConfig();
         ArrayList<BPUserData> users = BPUserData.getAllUserData();
         BPUserData.sortUserData(users);
 
@@ -112,12 +130,41 @@ public class BPCommand implements CommandExecutor {
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "===== Battle Points Ranking =====");
         for ( int i=0; i<numberOfView; i++ ) {
             BPUserData data = users.get(i);
-            String rank = BPConfig.getRankFromPoint(users.get(i).point);
-            ChatColor color = BPConfig.rankColors.get(rank);
+            String rank = config.getRankFromPoint(users.get(i).point);
+            String color = config.getColorFromRank(rank);
+            double rate = (double)data.kills / (double)data.deaths;
             sender.sendMessage(String.format(ChatColor.RED +
-                    "%d. %s%s - %s - %dP, %dK, %dD",
-                    (i+1), color.toString(), users.get(i).name, rank,
-                    data.point, data.kills, data.deaths));
+                    "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
+                    (i+1), color, users.get(i).name, rank,
+                    data.point, data.kills, data.deaths, rate));
+        }
+    }
+
+    /**
+     * KDレートランキングをsenderの画面に表示する
+     * @param sender ランキング表示対象
+     * @param numberOfView 表示する個数
+     */
+    private void viewKDRank(CommandSender sender, int numberOfView) {
+
+        BPConfig config = plugin.getBPConfig();
+        ArrayList<BPUserData> users = BPUserData.getAllUserData();
+        BPUserData.sortUserDataByKDRate(users);
+
+        if ( numberOfView > users.size() ) {
+            numberOfView = users.size();
+        }
+
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + "===== K/D Rate Ranking =====");
+        for ( int i=0; i<numberOfView; i++ ) {
+            BPUserData data = users.get(i);
+            String rank = config.getRankFromPoint(users.get(i).point);
+            String color = config.getColorFromRank(rank);
+            double rate = (double)data.kills / (double)data.deaths;
+            sender.sendMessage(String.format(ChatColor.RED +
+                    "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
+                    (i+1), color, users.get(i).name, rank,
+                    data.point, data.kills, data.deaths, rate));
         }
     }
 

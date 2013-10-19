@@ -10,6 +10,7 @@ initialPoint: 1500
 winBasePoint: 16
 winOffsetPoint: 2
 winBonusPointPercent: 4
+winTeamBonusPoint: 10
 ranks:
   novice:
     symbol: 'N'

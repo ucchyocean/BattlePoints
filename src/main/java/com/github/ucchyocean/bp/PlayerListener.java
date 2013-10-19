@@ -5,7 +5,6 @@
  */
 package com.github.ucchyocean.bp;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -23,6 +22,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
  */
 public class PlayerListener implements Listener {
 
+    private BattlePoints plugin;
+    
+    public PlayerListener(BattlePoints plugin) {
+        this.plugin = plugin;
+    }
+    
     /**
      * Player が死亡したときに発生するイベント
      * @param event
@@ -60,16 +65,18 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
 
-        if ( BPConfig.displayPointOnChat && !BPConfig.useVault ) {
+        BPConfig config = plugin.getBPConfig();
+        
+        if ( config.isDisplayPointOnChat() && !config.isUseVault() ) {
             Player player = event.getPlayer();
             BPUserData data = BPUserData.getData(player.getName());
             int point = data.point;
-            String rank = BPConfig.getRankFromPoint(point);
-            String symbol = BPConfig.rankSymbols.get(rank);
-            ChatColor color = BPConfig.rankColors.get(rank);
+            String rank = config.getRankFromPoint(point);
+            String symbol = config.getSymbolFromRank(rank);
+            String color = config.getColorFromRank(rank);
             String format = String.format(
                     "<%s&f>[%s%s%d&f]&r %s",
-                    "%1$s", color.toString(), symbol, point, "%2$s");
+                    "%1$s", color, symbol, point, "%2$s");
             event.setFormat(Utility.replaceColorCode(format));
         }
     }
@@ -81,17 +88,20 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
 
+        BPConfig config = plugin.getBPConfig();
+        
         // Vault連携の場合は、ここでSuffixを設定する
-        if ( BPConfig.displayPointOnChat && BPConfig.useVault && BattlePoints.vaultChat != null ) {
+        if ( config.isDisplayPointOnChat() && !config.isUseVault() 
+                && BattlePoints.vcbridge != null ) {
             Player player = event.getPlayer();
             BPUserData data = BPUserData.getData(player.getName());
             int point = data.point;
-            String rank = BPConfig.getRankFromPoint(point);
-            String symbol = BPConfig.rankSymbols.get(rank);
-            ChatColor color = BPConfig.rankColors.get(rank);
+            String rank = config.getRankFromPoint(point);
+            String symbol = config.getSymbolFromRank(rank);
+            String color = config.getColorFromRank(rank);
             String suffix = String.format(
-                    "&f[%s%s%d&f]", color.toString(), symbol, point);
-            BattlePoints.vaultChat.setPlayerSuffix(player, suffix);
+                    "&f[%s%s%d&f]", color, symbol, point);
+            BattlePoints.vcbridge.setPlayerSuffix(player, suffix);
         }
     }
 }

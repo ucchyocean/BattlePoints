@@ -44,19 +44,28 @@ public class BPUserData {
      * @param name プレイヤー名
      */
     public BPUserData(String name) {
-        this(name, BPConfig.initialPoint, 0, 0);
+        this(name, -1, 0, 0);
     }
 
     /**
      * コンストラクタ
      * @param name プレイヤー名
-     * @param point ポイント
+     * @param point ポイント（-1を指定した場合、初期値に設定される）
+     * @param kills キル数
+     * @param deaths デス数
      */
     public BPUserData(String name, int point, int kills, int deaths) {
+
         this.name = name;
-        this.point = point;
         this.kills = kills;
         this.deaths = deaths;
+        
+        if ( point == -1 ) {
+            BPConfig config = BattlePoints.instance.getBPConfig();
+            this.point = config.getInitialPoint();
+        } else {
+            this.point = point;
+        }
     }
 
     /**
@@ -116,6 +125,27 @@ public class BPUserData {
     }
 
     /**
+     * ArrayList&lt;BPUserData&gt; 型の配列を、KD降順にソートする。
+     * @param data ソート対象の配列
+     */
+    public static void sortUserDataByKDRate(ArrayList<BPUserData> data) {
+
+        Collections.sort(data, new Comparator<BPUserData>() {
+            public int compare(BPUserData ent1, BPUserData ent2) {
+                double kd1 = (double)ent1.kills / (double)ent1.deaths;
+                double kd2 = (double)ent2.kills / (double)ent2.deaths;
+                if ( kd1 < kd2 ) {
+                    return 1;
+                } else if ( kd1 > kd2 ) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+    }
+
+    /**
      * プレイヤー名に対応したユーザーデータを取得する
      * @param name プレイヤー名
      * @return BPUserData
@@ -135,8 +165,9 @@ public class BPUserData {
             return new BPUserData(name);
         }
 
+        int initial = BattlePoints.instance.getBPConfig().getInitialPoint();
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        int point = config.getInt("point", BPConfig.initialPoint);
+        int point = config.getInt("point", initial);
         int kills = config.getInt("kills", 0);
         int deaths = config.getInt("deaths", 0);
         return new BPUserData(name, point, kills, deaths);

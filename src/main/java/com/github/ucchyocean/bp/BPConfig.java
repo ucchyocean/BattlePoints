@@ -23,20 +23,21 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class BPConfig {
 
-    protected static boolean useVault;
-    protected static boolean displayPointOnChat;
-    protected static int initialPoint;
-    protected static int winBasePoint;
-    protected static int winOffsetPoint;
-    protected static int winBonusPointPercent;
-    protected static Hashtable<String, String> rankSymbols;
-    protected static Hashtable<String, ChatColor> rankColors;
-    protected static ArrayList<Entry<String, Integer>> rankBorders;
+    private boolean useVault;
+    private boolean displayPointOnChat;
+    private int initialPoint;
+    private int winBasePoint;
+    private int winOffsetPoint;
+    private int winBonusPointPercent;
+    private int winTeamBonusPoint;
+    private Hashtable<String, String> rankSymbols;
+    private Hashtable<String, ChatColor> rankColors;
+    private ArrayList<Entry<String, Integer>> rankBorders;
 
     /**
      * config.ymlの読み出し処理。
      */
-    public static void reloadConfig() {
+    public static BPConfig load() {
 
         // フォルダやファイルがない場合は、作成したりする
         File dir = new File(
@@ -59,15 +60,17 @@ public class BPConfig {
         FileConfiguration config = BattlePoints.instance.getConfig();
 
         // 各コンフィグの取得
-        useVault = config.getBoolean("useVault", false);
-        displayPointOnChat = config.getBoolean("displayPointOnChat", true);
-        initialPoint = config.getInt("initialPoint", 1500);
-        winBasePoint = config.getInt("winBasePoint", 16);
-        winOffsetPoint = config.getInt("winOffsetPoint", 2);
-        winBonusPointPercent = config.getInt("winBonusPointPercent", 4);
+        BPConfig conf = new BPConfig();
+        conf.useVault = config.getBoolean("useVault", false);
+        conf.displayPointOnChat = config.getBoolean("displayPointOnChat", true);
+        conf.initialPoint = config.getInt("initialPoint", 1500);
+        conf.winBasePoint = config.getInt("winBasePoint", 16);
+        conf.winOffsetPoint = config.getInt("winOffsetPoint", 2);
+        conf.winBonusPointPercent = config.getInt("winBonusPointPercent", 4);
+        conf.winTeamBonusPoint = config.getInt("winTeamBonusPoint", 10);
 
-        rankSymbols = new Hashtable<String, String>();
-        rankColors = new Hashtable<String, ChatColor>();
+        conf.rankSymbols = new Hashtable<String, String>();
+        conf.rankColors = new Hashtable<String, ChatColor>();
         Hashtable<String, Integer> rankBorders_temp = new Hashtable<String, Integer>();
         ConfigurationSection section = config.getConfigurationSection("ranks");
         if ( section != null ) {
@@ -75,12 +78,12 @@ public class BPConfig {
             while (i.hasNext()) {
                 String rankName = i.next();
                 if ( config.contains("ranks." + rankName + ".symbol") ) {
-                    rankSymbols.put(rankName, config.getString("ranks." + rankName + ".symbol") );
+                    conf.rankSymbols.put(rankName, config.getString("ranks." + rankName + ".symbol") );
                 } else {
-                    rankSymbols.put(rankName, rankName.substring(0, 1));
+                    conf.rankSymbols.put(rankName, rankName.substring(0, 1));
                 }
                 String color = config.getString("ranks." + rankName + ".color", "white");
-                rankColors.put(rankName, Utility.toChatColor(color));
+                conf.rankColors.put(rankName, Utility.toChatColor(color));
                 if ( config.contains("ranks." + rankName + ".border") ) {
                     rankBorders_temp.put(rankName, config.getInt("ranks." + rankName + ".border") );
                 }
@@ -89,18 +92,18 @@ public class BPConfig {
 
         // もしrankが正しくロードされていなければ、ここで初期値を設定する
         if ( rankBorders_temp.size() <= 0 ) {
-            rankSymbols = new Hashtable<String, String>();
-            rankSymbols.put("novice", "N");
-            rankSymbols.put("bronze", "B");
-            rankSymbols.put("silver", "S");
-            rankSymbols.put("gold", "G");
-            rankSymbols.put("platinum", "P");
-            rankColors = new Hashtable<String, ChatColor>();
-            rankColors.put("novice", ChatColor.BLUE);
-            rankColors.put("bronze", ChatColor.AQUA);
-            rankColors.put("silver", ChatColor.GOLD);
-            rankColors.put("gold", ChatColor.RED);
-            rankColors.put("platinum", ChatColor.LIGHT_PURPLE);
+            conf.rankSymbols = new Hashtable<String, String>();
+            conf.rankSymbols.put("novice", "N");
+            conf.rankSymbols.put("bronze", "B");
+            conf.rankSymbols.put("silver", "S");
+            conf.rankSymbols.put("gold", "G");
+            conf.rankSymbols.put("platinum", "P");
+            conf.rankColors = new Hashtable<String, ChatColor>();
+            conf.rankColors.put("novice", ChatColor.BLUE);
+            conf.rankColors.put("bronze", ChatColor.AQUA);
+            conf.rankColors.put("silver", ChatColor.GOLD);
+            conf.rankColors.put("gold", ChatColor.RED);
+            conf.rankColors.put("platinum", ChatColor.LIGHT_PURPLE);
             rankBorders_temp = new Hashtable<String, Integer>();
             rankBorders_temp.put("novice", 0);
             rankBorders_temp.put("bronze", 1700);
@@ -110,15 +113,17 @@ public class BPConfig {
         }
 
         // rankBorders は、ここでソートを実行しておく
-        rankBorders = new ArrayList<Entry<String,Integer>>(rankBorders_temp.entrySet());
+        conf.rankBorders = new ArrayList<Entry<String,Integer>>(rankBorders_temp.entrySet());
 
-        Collections.sort(rankBorders, new Comparator<Entry<String, Integer>>(){
+        Collections.sort(conf.rankBorders, new Comparator<Entry<String, Integer>>() {
             public int compare(Entry<String, Integer> ent1, Entry<String, Integer> ent2){
                 Integer val1 = ent1.getValue();
                 Integer val2 = ent2.getValue();
                 return val1.compareTo(val2);
             }
         });
+        
+        return conf;
     }
 
     /**
@@ -127,7 +132,7 @@ public class BPConfig {
      * @param loserPoint 敗者の変動前ポイント
      * @return 移動するポイント
      */
-    public static int getEloRating(int winnerPoint, int loserPoint) {
+    public int getEloRating(int winnerPoint, int loserPoint) {
 
         int rate = winBasePoint + (int)Math.round(
                 (double)(loserPoint - winnerPoint) * winBonusPointPercent / 100 );
@@ -145,7 +150,7 @@ public class BPConfig {
      * @param point ポイント
      * @return 称号名
      */
-    public static String getRankFromPoint(int point) {
+    public String getRankFromPoint(int point) {
 
         for ( int i = rankBorders.size()-1; i>=0; i-- ) {
             int border = rankBorders.get(i).getValue();
@@ -154,5 +159,68 @@ public class BPConfig {
             }
         }
         return "";
+    }
+    
+    /**
+     * 称号名から、ランクカラーを取得する
+     * @param rank 称号名
+     * @return ランクカラー（§n 形式の文字列で返します）
+     */
+    public String getColorFromRank(String rank) {
+        
+        if ( rankColors.containsKey(rank) ) {
+            return rankColors.get(rank).toString();
+        }
+        return "";
+    }
+    
+    /**
+     * ポイント数から、ランクカラーを取得する
+     * @param point ポイント
+     * @return ランクカラー（§n 形式の文字列で返します）
+     */
+    public String getColorFromPoint(int point) {
+        return getColorFromRank(getRankFromPoint(point));
+    }
+    
+    /**
+     * 称号名から、ランクシンボルを取得する
+     * @param rank 称号名
+     * @return ランクシンボル
+     */
+    public String getSymbolFromRank(String rank) {
+        
+        if ( rankSymbols.containsKey(rank) ) {
+            return rankSymbols.get(rank);
+        }
+        return "";
+    }
+
+    public boolean isUseVault() {
+        return useVault;
+    }
+
+    public boolean isDisplayPointOnChat() {
+        return displayPointOnChat;
+    }
+
+    public int getInitialPoint() {
+        return initialPoint;
+    }
+
+    public int getWinBasePoint() {
+        return winBasePoint;
+    }
+
+    public int getWinOffsetPoint() {
+        return winOffsetPoint;
+    }
+
+    public int getWinBonusPointPercent() {
+        return winBonusPointPercent;
+    }
+
+    public int getWinTeamBonusPoint() {
+        return winTeamBonusPoint;
     }
 }

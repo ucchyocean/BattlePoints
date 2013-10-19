@@ -47,7 +47,7 @@ public class Messages {
      * @param key リソースキー
      * @return リソース
      */
-    protected static String get(String key) {
+    public static String get(String key) {
 
         if ( resources == null ) {
             initialize();
@@ -62,7 +62,7 @@ public class Messages {
      * @param args 引数
      * @return リソース
      */
-    protected static String get(String key, Object... args) {
+    public static String get(String key, Object... args) {
 
         return String.format(get(key), args);
     }

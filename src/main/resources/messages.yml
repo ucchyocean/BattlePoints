@@ -3,7 +3,8 @@
 # @license    LGPLv3
 # @copyright  Copyright ucchy 2013
 
-prefix: '&f[BattlePoints]'
+prefix: '&f[BP]'
 rankup: '&c%s は、%s にランクアップした！'
 rankdown: '&7%s は、%s にランクダウンした'
-battleResult: '&dWinner: %s%12s &c%d&fP(+%dP), &dLoser: %s%12s &c%d&fP(-%dP)'
+battleResult: '&dWinner: %s%s &c%d&fP(+%dP), &dLoser: %s%s &c%d&fP(-%dP)'
+teamWonBonus: '%s &cチーム勝利！ %dポイントを獲得した！ 合計 %dP'
