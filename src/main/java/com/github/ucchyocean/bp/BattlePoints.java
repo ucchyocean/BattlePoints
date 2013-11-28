@@ -213,6 +213,36 @@ public class BattlePoints extends JavaPlugin {
     }
     
     /**
+     * 指定したプレイヤー名のキル数を追加する
+     * @param name プレイヤー名
+     * @param amount キル数
+     */
+    public void addKill(String name, int amount) {
+        BPUserData data = BPUserData.getData(name);
+        int newpoint = data.kills + amount;
+        if ( newpoint < 0 ) {
+            newpoint = 0;
+        }
+        data.kills = newpoint;
+        data.save();
+    }
+    
+    /**
+     * 指定したプレイヤー名のデス数を追加する
+     * @param name プレイヤー名
+     * @param amount デス数
+     */
+    public void addDeath(String name, int amount) {
+        BPUserData data = BPUserData.getData(name);
+        int newpoint = data.deaths + amount;
+        if ( newpoint < 0 ) {
+            newpoint = 0;
+        }
+        data.deaths = newpoint;
+        data.save();
+    }
+    
+    /**
      * BattlePointsの設定データを取得する
      * @return BattlePointsの設定データ
      */
