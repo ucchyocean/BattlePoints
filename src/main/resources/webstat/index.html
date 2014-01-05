@@ -4,8 +4,24 @@
     <title>BattlePoints Webstat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="https://code.jquery.com/jquery.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/jquery.tablesorter.js"></script>
+    <script type="text/javascript">
+$(function(){
+    $.ajax({
+        url: 'data.xml',
+        dataType: 'xml',
+        success : function(data){
+            $("data",data).each(function(){
+                $("tbody").append("<tr><td>name</td><td>"+$("point",this).text()+"</td><td>"+$("cls",this).text()+"</td><td>"+$("rate",this).text()+"</td><td>"+$("kill",this).text()+"</td><td>"+$("death",this).text()+"</td></tr>");
+            })
+        }
+    })
+})
+    </script>
+
   </head>
   <body>
 
@@ -36,8 +52,20 @@
     <div class="container">
       <div class="jumbotron">
         <h1>Hello, world!</h1>
-        <p>...</p>
-        <p><a class="btn btn-primary btn-lg" role="button">Learn more</a></p>
+        <table id="jquery-tablesorter-table" class="tablesorter">
+          <thead>
+            <tr>
+              <th>name</th>
+              <th>point</th>
+              <th>class</th>
+              <th>k/d rate</th>
+              <th>kill</th>
+              <th>death</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
       </div>
     </div>
 

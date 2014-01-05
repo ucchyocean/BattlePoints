@@ -82,6 +82,9 @@ public class BattlePoints extends JavaPlugin {
             vcbridge = VaultChatBridge.load();
         }
         
+        // ユーザーデータのキャッシュ生成
+        BPUserData.initCache();
+        
         // objectiveの取得
         Scoreboard sb = getServer().getScoreboardManager().getMainScoreboard();
         objective = sb.getObjective("battlepoints");
@@ -102,6 +105,7 @@ public class BattlePoints extends JavaPlugin {
             webserver = new BPWebServer();
             webserverTask = 
                     getServer().getScheduler().runTaskAsynchronously(this, webserver);
+            BPUserData.refreshDataXMLFile();
         }
     }
     

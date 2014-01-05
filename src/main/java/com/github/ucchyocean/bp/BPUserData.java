@@ -5,12 +5,15 @@
  */
 package com.github.ucchyocean.bp;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -22,8 +25,18 @@ import org.bukkit.entity.Player;
 public class BPUserData {
 
     private static final String DATA_FOLDER_NAME = "users";
+    private static final String XML_LINE = 
+            "<data name=\"%s\"><point>%d</point><cls>%s</cls><rate>%.3f</rate>"
+            + "<kill>%d</kill><death>%d</death>";
+    private static final String XML_PREFIX = 
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><battlepoints>";
+    private static final String XML_SUFFIX = 
+            "</battlepoints>";
 
     private static File saveFolder;
+    
+    private static HashMap<String, BPUserData> cache
+            = new HashMap<String, BPUserData>();
 
     private File file;
 
@@ -96,6 +109,17 @@ public class BPUserData {
         }
     }
 
+    /**
+     * 全データを再読み込みして、キャッシュを初期化する。
+     */
+    public static void initCache() {
+        
+        cache = new HashMap<String, BPUserData>();
+        for ( BPUserData data : getAllUserData() ) {
+            cache.put(data.name, data);
+        }
+    }
+    
     /**
      * ArrayList&lt;BPUserData&gt; 型の配列を、降順にソートする。
      * @param data ソート対象の配列
@@ -176,6 +200,10 @@ public class BPUserData {
      */
     public static BPUserData getData(String name) {
 
+        if ( cache.containsKey(name) ) {
+            return cache.get(name);
+        }
+        
         if ( saveFolder == null ) {
             saveFolder = new File(
                     BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
@@ -203,6 +231,10 @@ public class BPUserData {
      */
     public static ArrayList<BPUserData> getAllUserData() {
 
+        if ( cache != null && cache.size() > 0 ) {
+            return new ArrayList<BPUserData>(cache.values());
+        }
+        
         if ( saveFolder == null ) {
             saveFolder = new File(
                     BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
@@ -235,9 +267,11 @@ public class BPUserData {
     public double getKDRate() {
         
         if ( deaths == 0 && kills > 0 ) 
-            return 999.0;
+            return (double)kills;
         else if ( deaths == 0 && kills == 0 ) 
             return 0;
+        else if ( deaths > 0 && kills == 0 ) 
+            return -(double)deaths;
         else 
             return (double)kills / (double)deaths;
     }
@@ -256,5 +290,48 @@ public class BPUserData {
      */
     public int getDeathCount() {
         return deaths;
+    }
+    
+    /**
+     * XML用のデータ文字列を返す
+     * @return
+     */
+    public String getXMLEntry() {
+        String cls = BattlePoints.getInstance().getBPConfig().getRankFromPoint(point);
+        return String.format(XML_LINE, name, point, cls, getKDRate(), kills, deaths);
+    }
+    
+    /**
+     * Webstat用のXMLデータを更新する
+     */
+    public static void refreshDataXMLFile() {
+        
+        File file = new File(
+                BattlePoints.getInstance().getWebstatContentFolder(), "data.xml");
+        
+        BufferedWriter writer = null;
+
+        try {
+            writer = new BufferedWriter(new FileWriter(file));
+            writer.write(XML_PREFIX);
+            writer.newLine();
+            for ( BPUserData data : getAllUserData() ) {
+                writer.write(data.getXMLEntry());
+                writer.newLine();
+            }
+            writer.write(XML_SUFFIX);
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if ( writer != null ) {
+                try {
+                    writer.flush();
+                    writer.close();
+                } catch (IOException e) {
+                    // do nothing.
+                }
+            }
+        }
     }
 }
