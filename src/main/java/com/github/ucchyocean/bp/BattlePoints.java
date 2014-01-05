@@ -53,13 +53,13 @@ public class BattlePoints extends JavaPlugin {
         if ( getServer().getPluginManager().isPluginEnabled("ColorTeaming") ) {
             colorteaming = getServer().getPluginManager().getPlugin("ColorTeaming");
             String ctversion = colorteaming.getDescription().getVersion();
-            if ( Utility.isUpperVersion(ctversion, "2.2.0") ) {
+            if ( Utility.isUpperVersion(ctversion, "2.2.5") ) {
                 ctbridge = ColorTeamingBridge.load(this, colorteaming);
                 getServer().getPluginManager().registerEvents(ctbridge, this);
-                getLogger().info("ColorTeaming がロードされました。連携機能を有効にします。");
+                getLogger().info("ColorTeaming was loaded. BattlePoints was in cooperation with ColorTeaming.");
             } else {
-                getLogger().warning("ColorTeaming のバージョンが古いため、連携機能は無効になりました。");
-                getLogger().warning("連携機能を使用するには、ColorTeaming v2.2.0 以上が必要です。");
+                getLogger().warning("ColorTeaming was too old. The cooperation feature will be disabled.");
+                getLogger().warning("NOTE: Please use ColorTeaming v2.2.5 or later version.");
             }
         }
 
@@ -206,18 +206,21 @@ public class BattlePoints extends JavaPlugin {
      * 指定したプレイヤー名のポイントを追加する
      * @param name プレイヤー名
      * @param point ポイント
+     * @return 加算後のポイント
      */
-    public void addPoint(String name, int point) {
+    public int addPoint(String name, int point) {
         int newpoint = BPUserData.getData(name).point + point;
         setPoint(name, newpoint);
+        return newpoint;
     }
     
     /**
      * 指定したプレイヤー名のキル数を追加する
      * @param name プレイヤー名
      * @param amount キル数
+     * @return 加算後のキル数
      */
-    public void addKill(String name, int amount) {
+    public int addKill(String name, int amount) {
         BPUserData data = BPUserData.getData(name);
         int newpoint = data.kills + amount;
         if ( newpoint < 0 ) {
@@ -225,14 +228,16 @@ public class BattlePoints extends JavaPlugin {
         }
         data.kills = newpoint;
         data.save();
+        return newpoint;
     }
     
     /**
      * 指定したプレイヤー名のデス数を追加する
      * @param name プレイヤー名
      * @param amount デス数
+     * @return 加算後のデス数
      */
-    public void addDeath(String name, int amount) {
+    public int addDeath(String name, int amount) {
         BPUserData data = BPUserData.getData(name);
         int newpoint = data.deaths + amount;
         if ( newpoint < 0 ) {
@@ -240,6 +245,7 @@ public class BattlePoints extends JavaPlugin {
         }
         data.deaths = newpoint;
         data.save();
+        return newpoint;
     }
     
     /**

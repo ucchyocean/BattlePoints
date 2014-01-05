@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 /**
  * BattlePointsのコマンド実行クラス
@@ -67,38 +68,54 @@ public class BPCommand implements CommandExecutor {
             viewKDRank(sender, numberOfView);
             return true;
 
+        } else if ( args[0].equalsIgnoreCase("krank") ) {
+            int numberOfView = 10;
+            if ( args.length >= 2 && Utility.tryIntParse(args[1]) ) {
+                numberOfView = Integer.parseInt(args[1]);
+            }
+            viewKillRank(sender, numberOfView);
+            return true;
+
+        } else if ( args[0].equalsIgnoreCase("drank") ) {
+            int numberOfView = 10;
+            if ( args.length >= 2 && Utility.tryIntParse(args[1]) ) {
+                numberOfView = Integer.parseInt(args[1]);
+            }
+            viewDeathRank(sender, numberOfView);
+            return true;
+
         } else if ( args[0].equalsIgnoreCase("set") ) {
             if ( args.length >= 3 && Utility.tryIntParse(args[2]) ) {
                 int point = Integer.parseInt(args[2]);
                 plugin.setPoint(args[1], point);
                 sender.sendMessage(ChatColor.GRAY +
-                        "プレイヤー" + args[1] + "のポイントを" + point + "に設定しました。");
+                        "set player " + args[1] + " point to " + point + ".");
                 return true;
             } else {
-                sender.sendMessage(ChatColor.RED + "パラメータの指定が正しくありません。");
+                sender.sendMessage(ChatColor.RED + "invalid command parameter.");
                 return false;
             }
 
         } else if ( args[0].equalsIgnoreCase("add") ) {
             if ( args.length >= 3 && Utility.tryIntParse(args[2]) ) {
                 int point = Integer.parseInt(args[2]);
-                plugin.addPoint(args[1], point);
+                int newpoint = plugin.addPoint(args[1], point);
                 sender.sendMessage(ChatColor.GRAY +
-                        "プレイヤー" + args[1] + "のポイントを" + point + "増やしました。");
+                        "set player " + args[1] + " point to " + newpoint + ".");
                 return true;
             } else {
-                sender.sendMessage(ChatColor.RED + "パラメータの指定が正しくありません。");
+                sender.sendMessage(ChatColor.RED + "invalid command parameter.");
                 return false;
             }
 
         } else if ( args[0].equalsIgnoreCase("reload") ) {
             plugin.reloadDatas();
-            sender.sendMessage(ChatColor.GRAY + "設定を再読み込みしました。");
+            sender.sendMessage(ChatColor.GRAY + "reloaded configuration.");
             return true;
 
         } else if ( args[0].equalsIgnoreCase("team") ) {
             if ( BattlePoints.ctbridge == null ) {
-                sender.sendMessage(ChatColor.RED + "ColorTeaming連携機能が無効のため、このコマンドは使えません。");
+                sender.sendMessage(ChatColor.RED + "ColorTeaming cooperation feature was disabled.");
                 return false;
             }
             int numberOfGroups = 2;
@@ -118,26 +135,10 @@ public class BPCommand implements CommandExecutor {
      * @param numberOfView 表示する個数
      */
     private void viewRank(CommandSender sender, int numberOfView) {
-
-        BPConfig config = plugin.getBPConfig();
         ArrayList<BPUserData> users = BPUserData.getAllUserData();
         BPUserData.sortUserData(users);
-
-        if ( numberOfView > users.size() ) {
-            numberOfView = users.size();
-        }
-
-        sender.sendMessage(ChatColor.LIGHT_PURPLE + "===== Battle Points Ranking =====");
-        for ( int i=0; i<numberOfView; i++ ) {
-            BPUserData data = users.get(i);
-            String rank = config.getRankFromPoint(users.get(i).point);
-            String color = config.getColorFromRank(rank);
-            double rate = data.getKDRate();
-            sender.sendMessage(String.format(ChatColor.RED +
-                    "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
-                    (i+1), color, users.get(i).name, rank,
-                    data.point, data.kills, data.deaths, rate));
-        }
+        displayRanking(sender, users, numberOfView, 
+                "===== Battle Points Ranking =====");
     }
 
     /**
@@ -146,25 +147,93 @@ public class BPCommand implements CommandExecutor {
      * @param numberOfView 表示する個数
      */
     private void viewKDRank(CommandSender sender, int numberOfView) {
-
-        BPConfig config = plugin.getBPConfig();
         ArrayList<BPUserData> users = BPUserData.getAllUserData();
         BPUserData.sortUserDataByKDRate(users);
+        displayRanking(sender, users, numberOfView, 
+                "===== K/D Rate Ranking =====");
+    }
 
-        if ( numberOfView > users.size() ) {
-            numberOfView = users.size();
+    /**
+     * killカウントランキングをsenderの画面に表示する
+     * @param sender ランキング表示対象
+     * @param numberOfView 表示する個数
+     */
+    private void viewKillRank(CommandSender sender, int numberOfView) {
+        ArrayList<BPUserData> users = BPUserData.getAllUserData();
+        BPUserData.sortUserDataByKillCount(users);
+        displayRanking(sender, users, numberOfView, 
+                "===== Kill Count Ranking =====");
+    }
+
+    /**
+     * deathカウントランキングをsenderの画面に表示する
+     * @param sender ランキング表示対象
+     * @param numberOfView 表示する個数
+     */
+    private void viewDeathRank(CommandSender sender, int numberOfView) {
+        ArrayList<BPUserData> users = BPUserData.getAllUserData();
+        BPUserData.sortUserDataByDeathCount(users);
+        displayRanking(sender, users, numberOfView, 
+                "===== Death Count Ranking =====");
+    }
+    
+    /**
+     * senderにランキングデータを表示する
+     * @param sender 
+     * @param data 
+     * @param numberOfView 
+     */
+    private void displayRanking(CommandSender sender, 
+            ArrayList<BPUserData> datas, int numberOfView, String headerString) {
+        
+        BPConfig config = plugin.getBPConfig();
+        
+        String playerName = null;
+        boolean foundPlayer = false;
+        if ( sender instanceof Player ) {
+            playerName = ((Player)sender).getName();
+        } else {
+            foundPlayer = true;
         }
 
-        sender.sendMessage(ChatColor.LIGHT_PURPLE + "===== K/D Rate Ranking =====");
+        if ( numberOfView > datas.size() ) {
+            numberOfView = datas.size();
+        }
+
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + headerString);
+        
         for ( int i=0; i<numberOfView; i++ ) {
-            BPUserData data = users.get(i);
-            String rank = config.getRankFromPoint(users.get(i).point);
+            BPUserData data = datas.get(i);
+            String rank = config.getRankFromPoint(data.point);
             String color = config.getColorFromRank(rank);
             double rate = data.getKDRate();
-            sender.sendMessage(String.format(ChatColor.RED +
+            ChatColor headColor = ChatColor.WHITE;
+            if ( data.name.equals(playerName) ) {
+                foundPlayer = true;
+                headColor = ChatColor.RED;
+            }
+            sender.sendMessage(String.format(headColor +
                     "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
-                    (i+1), color, users.get(i).name, rank,
+                    (i+1), color, data.name, rank,
                     data.point, data.kills, data.deaths, rate));
+        }
+        
+        if ( !foundPlayer ) {
+            for ( int i=numberOfView; i<datas.size(); i++ ) {
+                BPUserData data = datas.get(i);
+                if ( data.name.equals(playerName) ) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE 
+                            + "===== Your Score =====");
+                    String rank = config.getRankFromPoint(data.point);
+                    String color = config.getColorFromRank(rank);
+                    double rate = data.getKDRate();
+                    sender.sendMessage(String.format(ChatColor.RED +
+                            "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
+                            (i+1), color, data.name, rank,
+                            data.point, data.kills, data.deaths, rate));
+                    break;
+                }
+            }
         }
     }
 

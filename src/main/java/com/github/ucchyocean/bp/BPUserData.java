@@ -43,7 +43,7 @@ public class BPUserData {
      * コンストラクタ。pointは初期値になる。
      * @param name プレイヤー名
      */
-    public BPUserData(String name) {
+    private BPUserData(String name) {
         this(name, -1, 0, 0);
     }
 
@@ -54,7 +54,7 @@ public class BPUserData {
      * @param kills キル数
      * @param deaths デス数
      */
-    public BPUserData(String name, int point, int kills, int deaths) {
+    private BPUserData(String name, int point, int kills, int deaths) {
 
         this.name = name;
         this.kills = kills;
@@ -146,6 +146,30 @@ public class BPUserData {
     }
 
     /**
+     * ArrayList&lt;BPUserData&gt; 型の配列を、kill順にソートする。
+     * @param data ソート対象の配列
+     */
+    public static void sortUserDataByKillCount(ArrayList<BPUserData> data) {
+        Collections.sort(data, new Comparator<BPUserData>() {
+            public int compare(BPUserData ent1, BPUserData ent2) {
+                return ent2.getKillCount() - ent1.getKillCount();
+            }
+        });
+    }
+
+    /**
+     * ArrayList&lt;BPUserData&gt; 型の配列を、death順にソートする。
+     * @param data ソート対象の配列
+     */
+    public static void sortUserDataByDeathCount(ArrayList<BPUserData> data) {
+        Collections.sort(data, new Comparator<BPUserData>() {
+            public int compare(BPUserData ent1, BPUserData ent2) {
+                return ent2.getDeathCount() - ent1.getDeathCount();
+            }
+        });
+    }
+
+    /**
      * プレイヤー名に対応したユーザーデータを取得する
      * @param name プレイヤー名
      * @return BPUserData
@@ -216,5 +240,21 @@ public class BPUserData {
             return 0;
         else 
             return (double)kills / (double)deaths;
+    }
+    
+    /**
+     * キル数を取得する
+     * @return キル数
+     */
+    public int getKillCount() {
+        return kills;
+    }
+    
+    /**
+     * デス数を取得する
+     * @return デス数
+     */
+    public int getDeathCount() {
+        return deaths;
     }
 }

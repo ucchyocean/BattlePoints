@@ -94,7 +94,7 @@ public class PlayerListener implements Listener {
         BPConfig config = plugin.getBPConfig();
         
         // Vault連携の場合は、ここでSuffixを設定する
-        if ( config.isDisplayPointOnChat() && !config.isUseVault() 
+        if ( config.isDisplayPointOnChat() && config.isUseVault() 
                 && BattlePoints.vcbridge != null ) {
             Player player = event.getPlayer();
             BPUserData data = BPUserData.getData(player.getName());
