@@ -1,6 +1,6 @@
 name: BattlePoints
 main: com.github.ucchyocean.bp.BattlePoints
-version: 2.2.2
+version: 3.0.0
 author: ucchy
 description: Points system plugin for PVP
 depend: []
@@ -10,17 +10,25 @@ commands:
     description: Points system plugin for PVP
     aliases: bp
     usage: |
-           /<command> rank [NumberOfView] - ポイントランキングを参照します。
-           /<command> kdrank [NumberOfView] - K/Dレートランキングを参照します。
-           /<command> set (player) (point) - プレイヤーのポイントを設定します。
-           /<command> team (number) - チームわけを実行します。ColorTeamingがロードされている必要があります。
-           /<command> reload - config.ymlを再読み込みします。
+           /<command> rank [NumberOfView] - view point ranking.
+           /<command> kdrank [NumberOfView] - view k/d rate ranking.
+           /<command> krank [NumberOfView] - view kill count ranking.
+           /<command> drank [NumberOfView] - view death count ranking.
+           /<command> set (player) (point) - set player's point.
+           /<command> team (number) - do teaming. (needs ColorTeaming plugin.)
+           /<command> reload - reload configuration.
 permissions:
   battlepoints.rank:
     description: Show point ranking command permission.
     default: true
   battlepoints.kdrank:
     description: Show K/D rate ranking command permission.
+    default: true
+  battlepoints.krank:
+    description: Show kill count ranking command permission.
+    default: true
+  battlepoints.drank:
+    description: Show death count ranking command permission.
     default: true
   battlepoints.set:
     description: Set player's point command permission.
