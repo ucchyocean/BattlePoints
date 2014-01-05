@@ -12,12 +12,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 import com.github.ucchyocean.bp.bridge.ColorTeamingBridge;
 import com.github.ucchyocean.bp.bridge.VaultChatBridge;
+import com.github.ucchyocean.bp.webstat.BPWebServer;
 
 /**
  * バトルポイントシステム プラグイン
@@ -36,6 +38,12 @@ public class BattlePoints extends JavaPlugin {
     
     /** コンフィグデータ */
     private BPConfig config;
+    
+    /** Webstatサーバー */
+    private BPWebServer webserver;
+    
+    /** Webstatサーバーの起動タスク */
+    private BukkitTask webserverTask;
 
     /**
      * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
@@ -88,6 +96,32 @@ public class BattlePoints extends JavaPlugin {
             Score s = objective.getScore(Bukkit.getOfflinePlayer(data.name));
             s.setScore(data.point);
         }
+        
+        // Webstatサーバーの起動
+        if ( config.isUseWebstat() ) {
+            webserver = new BPWebServer();
+            webserverTask = 
+                    getServer().getScheduler().runTaskAsynchronously(this, webserver);
+        }
+    }
+    
+    /**
+     * @see org.bukkit.plugin.java.JavaPlugin#onDisable()
+     */
+    @Override
+    public void onDisable() {
+        if ( webserver != null ) {
+            webserver.stop();
+            getServer().getScheduler().cancelTask(webserverTask.getTaskId());
+        }
+    }
+    
+    /**
+     * BattlePointsのインスタンスを返す
+     * @return インスタンス
+     */
+    public static BattlePoints getInstance() {
+        return instance;
     }
 
     /**
@@ -104,6 +138,30 @@ public class BattlePoints extends JavaPlugin {
      */
     protected static File getPluginJarFile() {
         return instance.getFile();
+    }
+    
+    /**
+     * Webstatのコンテンツフォルダを取得する
+     * @return コンテンツフォルダ
+     */
+    public File getWebstatContentFolder() {
+        File file = new File(instance.getDataFolder(), "webstat");
+        if ( !file.exists() ) {
+            file.mkdirs();
+        }
+        return file;
+    }
+    
+    /**
+     * Webstatのログフォルダを取得する
+     * @return ログフォルダ
+     */
+    public File getWebstatLogFolder() {
+        File file = new File(instance.getDataFolder(), "webstat-log");
+        if ( !file.exists() ) {
+            file.mkdirs();
+        }
+        return file;
     }
 
     /**

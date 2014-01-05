@@ -7,6 +7,9 @@ useVault: false
 displayPointOnChat: true
 displayPointOnChatWorlds: ['world']
 
+useWebstat: true
+webstatPortNumber: 8106
+
 initialPoint: 1500
 winBasePoint: 16
 winOffsetPoint: 2

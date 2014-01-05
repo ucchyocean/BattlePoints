@@ -27,6 +27,8 @@ public class BPConfig {
     private boolean useVault;
     private boolean displayPointOnChat;
     private List<String> displayPointOnChatWorlds;
+    private boolean useWebstat;
+    private int webstatPortNumber;
     private int initialPoint;
     private int winBasePoint;
     private int winOffsetPoint;
@@ -72,6 +74,8 @@ public class BPConfig {
             conf.displayPointOnChatWorlds = new ArrayList<String>();
             conf.displayPointOnChatWorlds.add("world");
         }
+        conf.useWebstat = config.getBoolean("useWebstat", true);
+        conf.webstatPortNumber = config.getInt("webstatPortNumber", 8106);
         conf.initialPoint = config.getInt("initialPoint", 1500);
         conf.winBasePoint = config.getInt("winBasePoint", 16);
         conf.winOffsetPoint = config.getInt("winOffsetPoint", 2);
@@ -212,9 +216,17 @@ public class BPConfig {
     public boolean isDisplayPointOnChat() {
         return displayPointOnChat;
     }
-    
+
     public List<String> getDisplayPointOnChatWorlds() {
         return displayPointOnChatWorlds;
+    }
+
+    public boolean isUseWebstat() {
+        return useWebstat;
+    }
+
+    public int getWebstatPortNumber() {
+        return webstatPortNumber;
     }
 
     public int getInitialPoint() {

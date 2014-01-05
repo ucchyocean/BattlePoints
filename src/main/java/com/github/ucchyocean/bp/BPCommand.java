@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 public class BPCommand implements CommandExecutor {
 
     private static final String[] COMMANDS = {
-        "rank", "kdrank", "set", "reload", "team",
+        "rank", "kdrank", "krank", "drank", "set", "reload", "team",
     };
     
     private BattlePoints plugin;
