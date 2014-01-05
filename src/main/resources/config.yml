@@ -5,6 +5,7 @@
 
 useVault: false
 displayPointOnChat: true
+displayPointOnChatWorlds: ['world']
 
 initialPoint: 1500
 winBasePoint: 16

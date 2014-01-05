@@ -49,7 +49,7 @@ public class VaultChatBridge {
      * @return プレイヤーのsuffix
      */
     public String getPlayerSuffix(Player player) {
-        return chatPlugin.getPlayerSuffix(player);
+        return chatPlugin.getPlayerSuffix(player.getWorld(), player.getName());
     }
 
     /**
@@ -58,6 +58,6 @@ public class VaultChatBridge {
      * @return プレイヤーのsuffix
      */
     public void setPlayerSuffix(Player player, String suffix) {
-        chatPlugin.setPlayerSuffix(player, suffix);
+        chatPlugin.setPlayerSuffix(player.getWorld(), player.getName(), suffix);
     }
 }

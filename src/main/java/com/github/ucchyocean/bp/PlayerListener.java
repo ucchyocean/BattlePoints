@@ -72,6 +72,12 @@ public class PlayerListener implements Listener {
         
         if ( config.isDisplayPointOnChat() && !config.isUseVault() ) {
             Player player = event.getPlayer();
+            
+            if ( !config.getDisplayPointOnChatWorlds().contains(
+                    player.getWorld().getName()) ) {
+                return;
+            }
+            
             BPUserData data = BPUserData.getData(player.getName());
             int point = data.point;
             String rank = config.getRankFromPoint(point);

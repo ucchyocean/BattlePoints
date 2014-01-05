@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
@@ -25,6 +26,7 @@ public class BPConfig {
 
     private boolean useVault;
     private boolean displayPointOnChat;
+    private List<String> displayPointOnChatWorlds;
     private int initialPoint;
     private int winBasePoint;
     private int winOffsetPoint;
@@ -63,6 +65,13 @@ public class BPConfig {
         BPConfig conf = new BPConfig();
         conf.useVault = config.getBoolean("useVault", false);
         conf.displayPointOnChat = config.getBoolean("displayPointOnChat", true);
+        if ( config.contains("displayPointOnChatWorlds") ) {
+            conf.displayPointOnChatWorlds 
+                = config.getStringList("displayPointOnChatWorlds");
+        } else {
+            conf.displayPointOnChatWorlds = new ArrayList<String>();
+            conf.displayPointOnChatWorlds.add("world");
+        }
         conf.initialPoint = config.getInt("initialPoint", 1500);
         conf.winBasePoint = config.getInt("winBasePoint", 16);
         conf.winOffsetPoint = config.getInt("winOffsetPoint", 2);
@@ -202,6 +211,10 @@ public class BPConfig {
 
     public boolean isDisplayPointOnChat() {
         return displayPointOnChat;
+    }
+    
+    public List<String> getDisplayPointOnChatWorlds() {
+        return displayPointOnChatWorlds;
     }
 
     public int getInitialPoint() {
