@@ -35,6 +35,11 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
 
+        // 設定がオフなら何もしない
+        if ( !BattlePoints.instance.getBPConfig().isListenPlayerDeathEvent() ) {
+            return;
+        }
+
         Player loser = event.getEntity();
 
         // killer を取得。

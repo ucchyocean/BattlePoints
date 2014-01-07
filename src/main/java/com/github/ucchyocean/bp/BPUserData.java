@@ -27,7 +27,7 @@ public class BPUserData {
     private static final String DATA_FOLDER_NAME = "users";
     private static final String XML_LINE = 
             "<data name=\"%s\"><point>%d</point><cls>%s</cls><rate>%.3f</rate>"
-            + "<kill>%d</kill><death>%d</death>";
+            + "<kill>%d</kill><death>%d</death></data>";
     private static final String XML_PREFIX = 
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?><battlepoints>";
     private static final String XML_SUFFIX = 
@@ -38,6 +38,8 @@ public class BPUserData {
     private static HashMap<String, BPUserData> cache
             = new HashMap<String, BPUserData>();
 
+    private static boolean needRefresh = true;
+    
     private File file;
 
     /** プレイヤー名 */
@@ -86,6 +88,8 @@ public class BPUserData {
      */
     public void save() {
 
+        needRefresh = true;
+        
         if ( saveFolder == null ) {
             saveFolder = new File(
                     BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
@@ -305,6 +309,11 @@ public class BPUserData {
      * Webstat用のXMLデータを更新する
      */
     public static void refreshDataXMLFile() {
+        
+        if ( !needRefresh ) {
+            return;
+        }
+        needRefresh = false;
         
         File file = new File(
                 BattlePoints.getInstance().getWebstatContentFolder(), "data.xml");

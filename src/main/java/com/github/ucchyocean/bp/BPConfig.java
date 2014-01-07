@@ -25,10 +25,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 public class BPConfig {
 
     private boolean useVault;
+    private boolean listenPlayerDeathEvent;
     private boolean displayPointOnChat;
     private List<String> displayPointOnChatWorlds;
     private boolean useWebstat;
     private int webstatPortNumber;
+    private int webstatRefreshIntervalSeconds;
     private int initialPoint;
     private int winBasePoint;
     private int winOffsetPoint;
@@ -66,6 +68,7 @@ public class BPConfig {
         // 各コンフィグの取得
         BPConfig conf = new BPConfig();
         conf.useVault = config.getBoolean("useVault", false);
+        conf.listenPlayerDeathEvent = config.getBoolean("listenPlayerDeathEvent", true);
         conf.displayPointOnChat = config.getBoolean("displayPointOnChat", true);
         if ( config.contains("displayPointOnChatWorlds") ) {
             conf.displayPointOnChatWorlds 
@@ -76,6 +79,8 @@ public class BPConfig {
         }
         conf.useWebstat = config.getBoolean("useWebstat", true);
         conf.webstatPortNumber = config.getInt("webstatPortNumber", 8106);
+        conf.webstatRefreshIntervalSeconds = 
+                config.getInt("webstatRefreshIntervalSeconds", 60);
         conf.initialPoint = config.getInt("initialPoint", 1500);
         conf.winBasePoint = config.getInt("winBasePoint", 16);
         conf.winOffsetPoint = config.getInt("winOffsetPoint", 2);
@@ -213,6 +218,10 @@ public class BPConfig {
         return useVault;
     }
 
+    public boolean isListenPlayerDeathEvent() {
+        return listenPlayerDeathEvent;
+    }
+
     public boolean isDisplayPointOnChat() {
         return displayPointOnChat;
     }
@@ -227,6 +236,10 @@ public class BPConfig {
 
     public int getWebstatPortNumber() {
         return webstatPortNumber;
+    }
+    
+    public int webstatRefreshIntervalSeconds() {
+        return webstatRefreshIntervalSeconds;
     }
 
     public int getInitialPoint() {

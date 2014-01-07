@@ -4,17 +4,22 @@
 # @copyright  Copyright ucchy 2013
 
 useVault: false
+
+listenPlayerDeathEvent: true
+
 displayPointOnChat: true
 displayPointOnChatWorlds: ['world']
 
 useWebstat: true
 webstatPortNumber: 8106
+webstatRefreshIntervalSeconds: 60
 
 initialPoint: 1500
 winBasePoint: 16
 winOffsetPoint: 2
 winBonusPointPercent: 4
 winTeamBonusPoint: 10
+
 ranks:
   novice:
     symbol: 'N'
@@ -23,16 +28,16 @@ ranks:
   bronze:
     symbol: 'B'
     color: 'aqua'
-    border: 1700
+    border: 1600
   silver:
     symbol: 'S'
     color: 'gold'
-    border: 1900
+    border: 1700
   gold:
     symbol: 'G'
     color: 'red'
-    border: 2200
+    border: 1800
   platinum:
     symbol: 'P'
     color: 'light_purple'
-    border: 2500
+    border: 1900

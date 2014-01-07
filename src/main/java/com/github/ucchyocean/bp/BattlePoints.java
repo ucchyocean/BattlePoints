@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -44,6 +45,9 @@ public class BattlePoints extends JavaPlugin {
     
     /** Webstatサーバーの起動タスク */
     private BukkitTask webserverTask;
+    
+    /** Webstatの定期更新タスク */
+    private BukkitTask refreshTask;
 
     /**
      * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
@@ -102,10 +106,20 @@ public class BattlePoints extends JavaPlugin {
         
         // Webstatサーバーの起動
         if ( config.isUseWebstat() ) {
+            
             webserver = new BPWebServer();
+            
             webserverTask = 
                     getServer().getScheduler().runTaskAsynchronously(this, webserver);
-            BPUserData.refreshDataXMLFile();
+            
+            long interval = 20 * config.webstatRefreshIntervalSeconds();
+            refreshTask = getServer().getScheduler().runTaskTimer(
+                    this, new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            BPUserData.refreshDataXMLFile();
+                        }
+                    }, 0, interval);
         }
     }
     
@@ -117,6 +131,7 @@ public class BattlePoints extends JavaPlugin {
         if ( webserver != null ) {
             webserver.stop();
             getServer().getScheduler().cancelTask(webserverTask.getTaskId());
+            getServer().getScheduler().cancelTask(refreshTask.getTaskId());
         }
     }
     
