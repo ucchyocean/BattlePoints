@@ -32,7 +32,7 @@ public class Utility {
      * @param sourceFilePath コピー元
      * @param isBinary バイナリファイルかどうか
      */
-    protected static void copyFileFromJar(
+    public static void copyFileFromJar(
             File jarFile, File targetFile, String sourceFilePath, boolean isBinary) {
 
         InputStream is = null;

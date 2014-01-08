@@ -155,7 +155,7 @@ public class BattlePoints extends JavaPlugin {
      * このプラグインのJarファイル自身を示すFileクラスを返す。
      * @return
      */
-    protected static File getPluginJarFile() {
+    public static File getPluginJarFile() {
         return instance.getFile();
     }
     

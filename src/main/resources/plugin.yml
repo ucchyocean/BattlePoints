@@ -1,6 +1,6 @@
 name: BattlePoints
 main: com.github.ucchyocean.bp.BattlePoints
-version: 3.0.0
+version: 3.0.1
 author: ucchy
 description: Points system plugin for PVP
 depend: []

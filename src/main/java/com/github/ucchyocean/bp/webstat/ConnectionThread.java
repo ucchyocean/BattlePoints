@@ -19,6 +19,9 @@ import com.github.ucchyocean.bp.BattlePoints;
  * @author ucchy
  */
 public class ConnectionThread extends Thread {
+    
+    // 顔画像キャッシュの有効期限（1日）
+    private static final long FACE_EXPIRE_LIMIT = 24 * 60 * 60 * 1000;
 
     private Socket socket;
     private FileCache cache;
@@ -62,9 +65,9 @@ public class ConnectionThread extends Thread {
             if ( responseFile.endsWith("/") ) {
                 responseFile += "index.html";
             }
-            if ( responseFile.startsWith("/") ) {
-                responseFile = responseFile.substring(1);
-            }
+//            if ( responseFile.startsWith("/") ) {
+//                responseFile = responseFile.substring(1);
+//            }
 
             String userAgent = "";
             while (reader.ready() && inline != null) {
@@ -74,10 +77,16 @@ public class ConnectionThread extends Thread {
                 }
             }
 
-            // レスポンス処理
             File file = new File(
                     BattlePoints.getInstance().getWebstatContentFolder(), 
                     responseFile);
+            
+            // 顔画像のリクエストなら、更新をまず行う
+            if ( isFaceFile(responseFile) ) {
+                refreshFaceFile(responseFile, file);
+            }
+            
+            // レスポンス処理
             if ( !file.exists() ) {
                 outstream.println("HTTP/1.0 404 Not Found");
                 outstream.println("");
@@ -112,6 +121,36 @@ public class ConnectionThread extends Thread {
             if ( outstream != null ) {
                 outstream.flush();
                 outstream.close();
+            }
+        }
+    }
+    
+    /**
+     * 指定されたファイル名が、プレイヤーフェイスかどうか
+     * @param name リクエストファイル名
+     * @return プレイヤーフェイスかどうか
+     */
+    private boolean isFaceFile(String name) {
+        return (name.startsWith("/faces/") && name.endsWith(".png"));
+    }
+    
+    /**
+     * プレイヤーフェイスファイルの更新を行う
+     * @param name リクエストファイル名
+     * @param file リクエストファイル
+     */
+    private void refreshFaceFile(String name, File file) {
+        
+        String playerName = name.substring("/faces/".length(), name.length() - ".png".length());
+        
+        if ( !file.exists() ) {
+            // 顔画像が無いならダウンロード
+            PlayerFaceDownloader.downloadSkin(playerName, file, true);
+        } else {
+            // 顔画像が古いなら再ダウンロード
+            long modified = file.lastModified();
+            if ( (modified + FACE_EXPIRE_LIMIT) < System.currentTimeMillis() ) {
+                PlayerFaceDownloader.downloadSkin(playerName, file, false);
             }
         }
     }
