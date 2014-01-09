@@ -76,6 +76,7 @@ public class PlayerListener implements Listener {
         BPConfig config = plugin.getBPConfig();
         
         if ( config.isDisplayPointOnChat() && !config.isUseVault() ) {
+            
             Player player = event.getPlayer();
             
             if ( !config.getDisplayPointOnChatWorlds().contains(
@@ -115,7 +116,10 @@ public class PlayerListener implements Listener {
             String color = config.getColorFromRank(rank);
             String suffix = String.format(
                     "&f[%s%s%d&f]", color, symbol, point);
-            BattlePoints.vcbridge.setPlayerSuffix(player, suffix);
+            
+            for ( String world : config.getDisplayPointOnChatWorlds() ) {
+                BattlePoints.vcbridge.setPlayerSuffix(world, player, suffix);
+            }
         }
     }
 }

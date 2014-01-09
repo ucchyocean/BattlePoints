@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- 
+  -- Battle Points Plugin v3.0.2
+  -- @author     ucchy
+  -- @license    LGPLv3
+  -- @copyright  Copyright ucchy 2014
+  -->
 <html>
   <head>
     <title>BattlePoints Webstat</title>
@@ -23,7 +29,8 @@ $(function() {
             $("data",data).each(function(){
             	var name = $(this).attr("name");
                 $("#stat-data").append("<tr>"
-                        + "<td>" + name + "<img src=\"/faces/" + name  + ".png\" alt=\"" + name + "\" width=16 height=16></td>"
+                        //+ "<td>" + name + "<img src=\"/faces/" + name  + ".png\" alt=\"" + name + "\" width=16 height=16></td>"
+                        + "<td>" + name + "</td>"
                         + "<td>" + $(this).find("point").text() + "</td>"
                         + "<td>" + $(this).find("cls").text() + "</td>"
                         + "<td>" + $(this).find("rate").text() + "</td>"
@@ -55,6 +62,8 @@ $(function() {
 
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <ul class="nav navbar-nav navbar-right">
+        
+          <!-- Please set your homepage link here!  href="(link)"  -->
           <li><a href="#">Home</a></li>
         </ul>
       </div>

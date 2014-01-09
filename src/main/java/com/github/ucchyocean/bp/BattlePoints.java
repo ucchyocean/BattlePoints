@@ -241,10 +241,13 @@ public class BattlePoints extends JavaPlugin {
                 && BattlePoints.vcbridge != null ) {
             String wSymbol = config.getSymbolFromRank(wRank);
             String wSuf = String.format("&f[%s%s%d&f]", wColor, wSymbol, winnerData.point);
-            BattlePoints.vcbridge.setPlayerSuffix(winner, wSuf);
             String lSymbol = config.getSymbolFromRank(lRank);
             String lSuf = String.format("&f[%s%s%d&f]", lColor, lSymbol, loserData.point);
-            BattlePoints.vcbridge.setPlayerSuffix(loser, lSuf);
+            
+            for ( String world : config.getDisplayPointOnChatWorlds() ) {
+                BattlePoints.vcbridge.setPlayerSuffix(world, winner, wSuf);
+                BattlePoints.vcbridge.setPlayerSuffix(world, loser, lSuf);
+            }
         }
     }
     
