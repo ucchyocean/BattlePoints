@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.HashMap;
 
 import com.github.ucchyocean.bp.BattlePoints;
 
@@ -25,15 +26,18 @@ public class ConnectionThread extends Thread {
 
     private Socket socket;
     private FileCache cache;
+    private BPDataSorter sorter;
 
     /**
      * コンストラクタ
      * @param socket クライアントからの接続
      * @param cache ファイルキャッシュ
+     * @param sorter BPUserDataのキャッシュ
      */
-    public ConnectionThread(Socket socket, FileCache cache) {
+    public ConnectionThread(Socket socket, FileCache cache, BPDataSorter sorter) {
         this.socket = socket;
         this.cache = cache;
+        this.sorter = sorter;
     }
 
     /**
@@ -57,17 +61,29 @@ public class ConnectionThread extends Thread {
             // リクエストヘッダーの解析処理
             String inline = reader.readLine();
             String responseFile;
+            HashMap<String, String> parameters = new HashMap<String, String>();
             if ( inline != null ) {
                 responseFile = inline.split(" ")[1].trim();
+                if ( responseFile.contains("?") ) {
+                    int index = responseFile.indexOf("?");
+                    String[] temp = responseFile.substring(index+1).split("&");
+                    responseFile = responseFile.substring(0, index);
+                    for ( String t : temp ) {
+                        index = t.indexOf("=");
+                        if ( index == -1 ) {
+                            continue;
+                        }
+                        String key = t.substring(0, index);
+                        String value = t.substring(index+1);
+                        parameters.put(key, value);
+                    }
+                }
             } else {
                 responseFile = "index.html";
             }
             if ( responseFile.endsWith("/") ) {
                 responseFile += "index.html";
             }
-//            if ( responseFile.startsWith("/") ) {
-//                responseFile = responseFile.substring(1);
-//            }
 
             String userAgent = "";
             while (reader.ready() && inline != null) {
@@ -84,6 +100,25 @@ public class ConnectionThread extends Thread {
             // 顔画像のリクエストなら、更新をまず行う
             if ( isFaceFile(responseFile) ) {
                 refreshFaceFile(responseFile, file);
+            }
+            
+            // データファイルなら、そのままレスポンス
+            if ( responseFile.equals("/sort_data") ) {
+                String type = parameters.get("type");
+                String page = parameters.get("page");
+                String size = parameters.get("size");
+                String filter = parameters.get("filter");
+                byte[] content = sorter.getDataContents(type, page, size, filter);
+                int len = content.length;
+                outstream.println("HTTP/1.0 200 OK");
+                outstream.println("MIME_version：1.0");
+                outstream.println("Content_Type：text/htm1");
+                outstream.println("Content_Length：" + len);
+                outstream.println("");
+                outstream.write(content, 0, len);
+                WebServerLogger.write(destIP + "," + destport + ",200," 
+                        + responseFile + "," + userAgent);
+                return;
             }
             
             // レスポンス処理

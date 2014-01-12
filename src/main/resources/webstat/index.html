@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- 
-  -- Battle Points Plugin v3.0.2
+  -- Battle Points Plugin v3.1.0
   -- @author     ucchy
   -- @license    LGPLv3
   -- @copyright  Copyright ucchy 2014
@@ -10,41 +10,17 @@
     <title>BattlePoints Webstat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <link href="css/jquery.tablesorter.css" rel="stylesheet" />
-    <link href="css/jquery.tablesorter.pager.css" rel="stylesheet" />
     <style type="text/css">
     th { text-align: center }
+    th.odds   { color: silver }
+    th.active { color: red }
     td { text-align: right }
+    td.name   { text-align: left }
+    td.odds   { color: silver }
     </style>
-    <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/jquery.tablesorter.js"></script>
-    <script type="text/javascript" src="js/jquery.tablesorter.pager.js"></script>
-    <script type="text/javascript">
-$(function() {
-    $.ajax({
-        url: 'data.xml',
-        dataType: 'xml',
-        success : function(data){
-            $("data",data).each(function(){
-            	var name = $(this).attr("name");
-                $("#stat-data").append("<tr>"
-                        //+ "<td>" + name + "<img src=\"/faces/" + name  + ".png\" alt=\"" + name + "\" width=16 height=16></td>"
-                        + "<td>" + name + "</td>"
-                        + "<td>" + $(this).find("point").text() + "</td>"
-                        + "<td>" + $(this).find("cls").text() + "</td>"
-                        + "<td>" + $(this).find("rate").text() + "</td>"
-                        + "<td>" + $(this).find("kill").text() + "</td>"
-                        + "<td>" + $(this).find("death").text() + "</td>"
-                        + "</tr>");
-            })
-            $("#stat-table")
-                .tablesorter({widthFixed: true, sortList: [[1,1]], sortInitialOrder: "desc", widgets: ['zebra']}) 
-                .tablesorterPager({container: $("#pager"), size: 10}); 
-        }
-    })
-});
-    </script>
+    <script type="text/javascript" src="js/battlepoints.js"></script>
   </head>
   
   <body>
@@ -57,10 +33,21 @@ $(function() {
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">BattlePoints Webstat</a>
+        <a class="navbar-brand" href="#">BattlePoints Webstats</a>
       </div>
 
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+	    <ul class="nav navbar-nav">
+	      <li id="point_menu"><a href="#" onClick="changeType('point')">Point</a></li>
+	      <li id="rate_menu"><a href="#" onClick="changeType('rate')">K/D</a></li>
+	      <li id="kills_menu"><a href="#" onClick="changeType('kills')">Kill</a></li>
+	      <li id="deaths_menu"><a href="#" onClick="changeType('deaths')">Death</a></li>
+	    </ul>
+	    <form class="navbar-form navbar-left" name="pfform" role="search">
+	      <div class="form-group">
+	        <input type="text" class="form-control" id="pfilter" name="pfilter" placeholder="Player Search" onkeyup="changeFilter(this.form.pfilter.value)">
+	      </div>
+	    </form>
         <ul class="nav navbar-nav navbar-right">
         
           <!-- Please set your homepage link here!  href="(link)"  -->
@@ -71,40 +58,43 @@ $(function() {
 
     <div class="container">
 
-      <table id="stat-table" class="table-bordered table-hover tablesorter">
+      <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group" id="pagination">
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+            Page Size <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#" onClick="changePageSize(10)">10</a></li>
+            <li><a href="#" onClick="changePageSize(20)">20</a></li>
+            <li><a href="#" onClick="changePageSize(40)">40</a></li>
+            <li><a href="#" onClick="changePageSize(60)">60</a></li>
+            <li><a href="#" onClick="changePageSize(80)">80</a></li>
+            <li><a href="#" onClick="changePageSize(100)">100</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <p></p>
+      
+      <table id="stat-table" class="table table-striped table-bordered table-hover">
         <thead>
           <tr>
-            <th>name</th>
-            <th>point</th>
-            <th>class</th>
-            <th>k/d rate</th>
-            <th>kill</th>
-            <th>death</th>
+            <th>Name</th>
+            <th>Class</th>
+            <th id="point_head">Point</th>
+            <th id="rate_head">K/D Rate</th>
+            <th id="kills_head">Kill</th>
+            <th id="deaths_head">Death</th>
           </tr>
         </thead>
         <tbody id="stat-data">
         </tbody>
       </table>
       
-      <span id="pager" class="pager">
-        <button type="button" class="btn first" title="first page"><span class="glyphicon glyphicon-step-backward"></span></button>
-        <button type="button" class="btn prev" title="prev page"><span class="glyphicon glyphicon-backward"></span></button>
-        <input type="text" title="page" class="pagedisplay" size="10" />
-        <button type="button" class="btn next" title="next page"><span class="glyphicon glyphicon-forward"></span></button>
-        <button type="button" class="btn last" title="last page"><span class="glyphicon glyphicon-step-forward"></span></button>
-        <label for="pagesize">page size : </label>
-        <select id="pagesize" class="pagesize" title="page size">
-          <option selected="selected" value="10">10</option>
-          <option value="20">20</option>
-          <option value="40">40</option>
-          <option value="60">60</option>
-          <option value="80">80</option>
-          <option value="100">100</option>
-        </select>
-      </span>
-
     </div>
-    
 
   </body>
 </html>

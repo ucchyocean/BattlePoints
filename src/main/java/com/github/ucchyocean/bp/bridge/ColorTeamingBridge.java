@@ -183,7 +183,7 @@ public class ColorTeamingBridge implements Listener {
             }
             battlepoints.addPoint(name, bonus);
             BPUserData data = BPUserData.getData(name);
-            sendMessage(player, "teamWonBonus", displayName, bonus, data.point);
+            sendMessage(player, "teamWonBonus", displayName, bonus, data.getPoint());
         }
         
         // メンバーのキャッシュをクリアする

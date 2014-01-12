@@ -22,6 +22,7 @@ import com.github.ucchyocean.bp.BattlePoints;
 public class BPWebServer extends BukkitRunnable {
 
     private ServerSocket server;
+    private boolean isRunning;
     
     /**
      * Webサーバーの開始処理
@@ -33,6 +34,8 @@ public class BPWebServer extends BukkitRunnable {
         int port = BattlePoints.getInstance().getBPConfig().getWebstatPortNumber();
         Logger logger = BattlePoints.getInstance().getLogger();
         FileCache cache = new FileCache();
+        BPDataSorter sorter = new BPDataSorter();
+        isRunning = true;
 
         try {
             // サーバサイドのSocketインスタンスを生成
@@ -45,12 +48,12 @@ public class BPWebServer extends BukkitRunnable {
                 Socket client = server.accept();
                 
                 // 接続処理スレッド
-                ConnectionThread ct = new ConnectionThread(client, cache);
+                ConnectionThread ct = new ConnectionThread(client, cache, sorter);
                 ct.start();
             }
 
         } catch (SocketException e) {
-            if ( server.isClosed() ) {
+            if ( !isRunning ) {
                 logger.info("Webstat server was closed.");
             } else {
                 e.printStackTrace();
@@ -64,6 +67,7 @@ public class BPWebServer extends BukkitRunnable {
      * Webサーバーの停止処理
      */
     public void stop() {
+        isRunning = false;
         if ( server == null ) {
             return;
         }

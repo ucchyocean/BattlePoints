@@ -85,7 +85,7 @@ public class PlayerListener implements Listener {
             }
             
             BPUserData data = BPUserData.getData(player.getName());
-            int point = data.point;
+            int point = data.getPoint();
             String rank = config.getRankFromPoint(point);
             String symbol = config.getSymbolFromRank(rank);
             String color = config.getColorFromRank(rank);
@@ -110,7 +110,7 @@ public class PlayerListener implements Listener {
                 && BattlePoints.vcbridge != null ) {
             Player player = event.getPlayer();
             BPUserData data = BPUserData.getData(player.getName());
-            int point = data.point;
+            int point = data.getPoint();
             String rank = config.getRankFromPoint(point);
             String symbol = config.getSymbolFromRank(rank);
             String color = config.getColorFromRank(rank);

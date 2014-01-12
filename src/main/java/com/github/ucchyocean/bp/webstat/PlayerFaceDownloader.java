@@ -71,9 +71,17 @@ public class PlayerFaceDownloader {
                 }
             }
             
+            // 2倍化
+            int[] doubleFace = new int[8*8*4];
+            for ( int y=0; y<8*2; y++ ) {
+                for ( int x=0; x<8*2; x++ ) {
+                    doubleFace[y*8*2+x] = face[(y/2)*8+(x/2)];
+                }
+            }
+            
             // 書き出し
-            BufferedImage output = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
-            output.setRGB(0, 0, 8, 8, face, 0, 8);
+            BufferedImage output = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+            output.setRGB(0, 0, 16, 16, doubleFace, 0, 16);
             ImageIO.write(output, "png", file);
             
             return true;

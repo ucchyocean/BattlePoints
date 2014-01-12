@@ -5,9 +5,7 @@
  */
 package com.github.ucchyocean.bp;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,34 +23,27 @@ import org.bukkit.entity.Player;
 public class BPUserData {
 
     private static final String DATA_FOLDER_NAME = "users";
-    private static final String XML_LINE = 
-            "<data name=\"%s\"><point>%d</point><cls>%s</cls><rate>%.3f</rate>"
-            + "<kill>%d</kill><death>%d</death></data>";
-    private static final String XML_PREFIX = 
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><battlepoints>";
-    private static final String XML_SUFFIX = 
-            "</battlepoints>";
 
     private static File saveFolder;
-    
+
     private static HashMap<String, BPUserData> cache
             = new HashMap<String, BPUserData>();
 
-    private static boolean needRefresh = true;
+    public static boolean needRefresh = true;
     
     private File file;
 
     /** プレイヤー名 */
-    public String name;
+    protected String name;
 
     /** ポイント */
-    public int point;
+    protected int point;
 
     /** キル数 */
-    public int kills;
+    protected int kills;
 
     /** デス数 */
-    public int deaths;
+    protected int deaths;
 
     /**
      * コンストラクタ。pointは初期値になる。
@@ -265,6 +256,22 @@ public class BPUserData {
     }
     
     /**
+     * プレイヤー名を取得する
+     * @return プレイヤー名
+     */
+    public String getName() {
+        return name;
+    }
+    
+    /**
+     * ポイントを取得する
+     * @return ポイント
+     */
+    public int getPoint() {
+        return point;
+    }
+    
+    /**
      * K/Dレートを取得する
      * @return K/Dレート
      */
@@ -297,50 +304,10 @@ public class BPUserData {
     }
     
     /**
-     * XML用のデータ文字列を返す
-     * @return
+     * 現在のポイントに該当するクラスランクを取得する
+     * @return クラスランク
      */
-    public String getXMLEntry() {
-        String cls = BattlePoints.getInstance().getBPConfig().getRankFromPoint(point);
-        return String.format(XML_LINE, name, point, cls, getKDRate(), kills, deaths);
-    }
-    
-    /**
-     * Webstat用のXMLデータを更新する
-     */
-    public static void refreshDataXMLFile() {
-        
-        if ( !needRefresh ) {
-            return;
-        }
-        needRefresh = false;
-        
-        File file = new File(
-                BattlePoints.getInstance().getWebstatContentFolder(), "data.xml");
-        
-        BufferedWriter writer = null;
-
-        try {
-            writer = new BufferedWriter(new FileWriter(file));
-            writer.write(XML_PREFIX);
-            writer.newLine();
-            for ( BPUserData data : getAllUserData() ) {
-                writer.write(data.getXMLEntry());
-                writer.newLine();
-            }
-            writer.write(XML_SUFFIX);
-            writer.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if ( writer != null ) {
-                try {
-                    writer.flush();
-                    writer.close();
-                } catch (IOException e) {
-                    // do nothing.
-                }
-            }
-        }
+    public String getRankClass() {
+        return BattlePoints.getInstance().getBPConfig().getRankFromPoint(point);
     }
 }

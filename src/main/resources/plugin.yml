@@ -1,8 +1,8 @@
-name: BattlePoints
+name: ${project.name}
 main: com.github.ucchyocean.bp.BattlePoints
-version: 3.0.2
+version: ${project.version}
 author: ucchy
-description: Points system plugin for PVP
+description: ${project.description}
 depend: []
 softdepend: [ColorTeaming, Vault]
 commands:

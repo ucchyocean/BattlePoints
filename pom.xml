@@ -2,7 +2,8 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.ucchyocean</groupId>
   <artifactId>BattlePoints</artifactId>
-  <version>3.0.2</version>
+  <version>3.1.0</version>
+  <description>Points system plugin for PVP</description>
 
   <licenses>
     <license>
@@ -26,6 +27,17 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/plugin.yml</include>
+          <include>**/config.yml</include>
+          <include>**/messages.yml</include>
+          </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
