@@ -48,26 +48,38 @@ public class ConnectionThread extends Thread {
         
         PrintStream outstream = null;
         BufferedReader reader = null;
+        boolean isResponced = false;
+        
+        // クライアントIP
+        String destIP = "";
+        
+        // クライアントポート
+        int destport = -1;
+        
+        // リクエストファイル
+        String requestFile = "";
+        
+        // UserAgent
+        String userAgent = "";
         
         try {
             // クライアントIP
-            String destIP = socket.getInetAddress().toString();
+            destIP = socket.getInetAddress().toString();
             // クライアントポート
-            int destport = socket.getPort();
+            destport = socket.getPort();
 
             outstream = new PrintStream(socket.getOutputStream());
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             // リクエストヘッダーの解析処理
             String inline = reader.readLine();
-            String responseFile;
             HashMap<String, String> parameters = new HashMap<String, String>();
             if ( inline != null ) {
-                responseFile = inline.split(" ")[1].trim();
-                if ( responseFile.contains("?") ) {
-                    int index = responseFile.indexOf("?");
-                    String[] temp = responseFile.substring(index+1).split("&");
-                    responseFile = responseFile.substring(0, index);
+                requestFile = inline.split(" ")[1].trim();
+                if ( requestFile.contains("?") ) {
+                    int index = requestFile.indexOf("?");
+                    String[] temp = requestFile.substring(index+1).split("&");
+                    requestFile = requestFile.substring(0, index);
                     for ( String t : temp ) {
                         index = t.indexOf("=");
                         if ( index == -1 ) {
@@ -79,13 +91,12 @@ public class ConnectionThread extends Thread {
                     }
                 }
             } else {
-                responseFile = "index.html";
+                requestFile = "index.html";
             }
-            if ( responseFile.endsWith("/") ) {
-                responseFile += "index.html";
+            if ( requestFile.endsWith("/") ) {
+                requestFile += "index.html";
             }
 
-            String userAgent = "";
             while (reader.ready() && inline != null) {
                 inline = reader.readLine();
                 if ( inline != null && inline.startsWith("User-Agent:") ) {
@@ -95,21 +106,22 @@ public class ConnectionThread extends Thread {
 
             File file = new File(
                     BattlePoints.getInstance().getWebstatContentFolder(), 
-                    responseFile);
+                    requestFile);
             
             // 顔画像のリクエストなら、更新をまず行う
-            if ( isFaceFile(responseFile) ) {
-                refreshFaceFile(responseFile, file);
+            if ( isFaceFile(requestFile) ) {
+                refreshFaceFile(requestFile, file);
             }
             
             // データファイルなら、そのままレスポンス
-            if ( responseFile.equals("/sort_data") ) {
+            if ( requestFile.equals("/sort_data") ) {
                 String type = parameters.get("type");
                 String page = parameters.get("page");
                 String size = parameters.get("size");
                 String filter = parameters.get("filter");
                 byte[] content = sorter.getDataContents(type, page, size, filter);
                 int len = content.length;
+                isResponced = true;
                 outstream.println("HTTP/1.0 200 OK");
                 outstream.println("MIME_version：1.0");
                 outstream.println("Content_Type：text/htm1");
@@ -117,18 +129,20 @@ public class ConnectionThread extends Thread {
                 outstream.println("");
                 outstream.write(content, 0, len);
                 WebServerLogger.write(destIP + "," + destport + ",200," 
-                        + responseFile + "," + userAgent);
+                        + requestFile + "," + userAgent);
                 return;
             }
             
             // レスポンス処理
             if ( !file.exists() ) {
+                isResponced = true;
                 outstream.println("HTTP/1.0 404 Not Found");
                 outstream.println("");
                 WebServerLogger.write(destIP + "," + destport + ",404," 
-                        + responseFile + "," + userAgent);
+                        + requestFile + "," + userAgent);
             } else {
                 int len = (int) file.length();
+                isResponced = true;
                 outstream.println("HTTP/1.0 200 OK");
                 outstream.println("MIME_version：1.0");
                 outstream.println("Content_Type：text/htm1");
@@ -136,15 +150,21 @@ public class ConnectionThread extends Thread {
                 outstream.println("");
 
                 // ファイル転送
-                byte[] content = cache.readFile(responseFile, file);
+                byte[] content = cache.readFile(requestFile, file);
                 outstream.write(content, 0, len);
                 
                 WebServerLogger.write(destIP + "," + destport + ",200," 
-                        + responseFile + "," + userAgent);
+                        + requestFile + "," + userAgent);
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            if ( outstream != null && !isResponced ) {
+                outstream.println("HTTP/1.0 500 Internal Server Error");
+                outstream.println("");
+            }
+            WebServerLogger.write(destIP + "," + destport + ",500," 
+                    + requestFile + "," + userAgent);
         } finally {
             if ( reader != null ) {
                 try {
