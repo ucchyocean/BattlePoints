@@ -32,10 +32,8 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
         <includes>
-          <include>**/plugin.yml</include>
-          <include>**/config.yml</include>
-          <include>**/messages.yml</include>
-          </includes>
+          <include>**</include>
+        </includes>
       </resource>
     </resources>
     <plugins>
