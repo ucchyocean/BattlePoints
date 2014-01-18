@@ -1,11 +1,11 @@
-/*!
+/*
  * ${project.name} v${project.version}
  * @author     ucchy
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2013
  */
 
-var psize = 3;
+var psize = 2;
 
 function load(_type, _page, _size, _filter) {
 	type = _type;
