@@ -116,14 +116,15 @@ public class BPCommand implements CommandExecutor {
         } else if ( args[0].equalsIgnoreCase("team") ) {
             if ( BattlePoints.ctbridge == null ) {
                 sender.sendMessage(ChatColor.RED + "ColorTeaming cooperation feature was disabled.");
-                return false;
+                return true;
             }
             int numberOfGroups = 2;
             if ( args.length >= 2 && args[1].matches("[2-9]") ) {
                 numberOfGroups = Integer.parseInt(args[1]);
             }
 
-            return BattlePoints.ctbridge.doTeaming(sender, numberOfGroups);
+            BattlePoints.ctbridge.doTeaming(sender, numberOfGroups);
+            return true;
         }
 
         return false;

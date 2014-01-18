@@ -40,7 +40,7 @@ public class BPWebServer extends BukkitRunnable {
         try {
             // サーバサイドのSocketインスタンスを生成
             server = new ServerSocket(port);
-            logger.info("Webstat server starts to listen on port "
+            logger.info("Webstats server starts to listen on port "
                     + server.getLocalPort() + ".");
 
             while (true) {
@@ -54,7 +54,7 @@ public class BPWebServer extends BukkitRunnable {
 
         } catch (SocketException e) {
             if ( !isRunning ) {
-                logger.info("Webstat server was closed.");
+                logger.info("Webstats server was closed.");
             } else {
                 e.printStackTrace();
             }
