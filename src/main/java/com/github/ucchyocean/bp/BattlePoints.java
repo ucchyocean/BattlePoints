@@ -33,6 +33,12 @@ public class BattlePoints extends JavaPlugin {
     protected static VaultChatBridge vcbridge;
     protected static ColorTeamingBridge ctbridge;
     
+    /** 現在1位のプレイヤー名 */
+    private String championName;
+    
+    /** 現在1位のプレイヤーポイント */
+    private int championPoint;
+    
     /** スコアボードのオブジェクティブ */
     private Objective objective;
     
@@ -181,58 +187,31 @@ public class BattlePoints extends JavaPlugin {
         int rate = config.getEloRating(lastWinnerPoint, lastLoserPoint);
         int winnerRate = rate + config.getWinOffsetPoint();
         int loserRate = rate;
-        winnerData.point = lastWinnerPoint + winnerRate;
-        winnerData.kills++;
-        loserData.point = lastLoserPoint - loserRate;
-        loserData.deaths++;
+        int newWinnerPoint = lastWinnerPoint + winnerRate;
+        int newLoserPoint = lastLoserPoint - loserRate;
 
         // 勝者、敗者が上限、下限に達したら、補正を行う
-        if ( winnerData.point > 9999 ) {
-            winnerData.point = 9999;
+        if ( newWinnerPoint > 9999 ) {
+            newWinnerPoint = 9999;
         }
-        if ( loserData.point < 0 ) {
-            loserData.point = 0;
+        if ( newLoserPoint < 0 ) {
+            newLoserPoint = 0;
         }
+        
+        // 更新を行い再取得する
+        setPoint(winner.getName(), newWinnerPoint);
+        addKill(winner.getName(), 1);
+        setPoint(loser.getName(), newLoserPoint);
+        addKill(loser.getName(), 1);
+        winnerData = BPUserData.getData(winner.getName());
+        loserData = BPUserData.getData(loser.getName());
 
-        // データ保存
-        winnerData.save();
-        loserData.save();
-
-        // ポイント表示更新
-        String wRank = config.getRankFromPoint(winnerData.point);
-        String lRank = config.getRankFromPoint(loserData.point);
+        // ポイント移動の通知を行う
         String wColor = config.getColorFromPoint(winnerData.point);
         String lColor = config.getColorFromPoint(loserData.point);
-
         broadcastMessage("battleResult",
                 wColor, winner.getName(),  winnerData.point, winnerRate, 
                 lColor, loser.getName(), loserData.point, loserRate);
-
-        // スコアボード更新
-        objective.getScore(winner).setScore(winnerData.point);
-        objective.getScore(loser).setScore(loserData.point);
-        
-        // 称号が変わったかどうかを確認する
-        if ( !wRank.equals(config.getRankFromPoint(lastWinnerPoint)) ) {
-            broadcastMessage("rankup", winner.getName(), wRank);
-        }
-        if ( !lRank.equals(config.getRankFromPoint(lastLoserPoint)) ) {
-            broadcastMessage("rankdown", loser.getName(), lRank);
-        }
-
-        // Vault連携の場合は、ここでSuffixを設定する
-        if ( config.isDisplayPointOnChat() && config.isUseVault() 
-                && BattlePoints.vcbridge != null ) {
-            String wSymbol = config.getSymbolFromRank(wRank);
-            String wSuf = String.format("&f[%s%s%d&f]", wColor, wSymbol, winnerData.point);
-            String lSymbol = config.getSymbolFromRank(lRank);
-            String lSuf = String.format("&f[%s%s%d&f]", lColor, lSymbol, loserData.point);
-            
-            for ( String world : config.getDisplayPointOnChatWorlds() ) {
-                BattlePoints.vcbridge.setPlayerSuffix(world, winner, wSuf);
-                BattlePoints.vcbridge.setPlayerSuffix(world, loser, lSuf);
-            }
-        }
     }
     
     /**
@@ -263,6 +242,27 @@ public class BattlePoints extends JavaPlugin {
                 broadcastMessage("rankup", name, rank);
             else 
                 broadcastMessage("rankdown", name, rank);
+        }
+        
+        // Vault連携の場合は、ここでSuffixを設定する
+        if ( config.isDisplayPointOnChat() && config.isUseVault() && vcbridge != null ) {
+            String symbol = config.getSymbolFromRank(rank);
+            String color = config.getColorFromRank(rank);
+            String suffix = String.format("&f[%s%s%d&f]", color, symbol, point);
+            
+            for ( String world : config.getDisplayPointOnChatWorlds() ) {
+                BattlePoints.vcbridge.setPlayerSuffix(world, name, suffix);
+            }
+        }
+        
+        // チャンピオンのポイントが減算されたか、
+        // チャンピオン以外の人のポイントがチャンピオンのポイントを超えたなら、
+        // チャンピオンの更新を確認する
+        if ( (name.equals(championName) && !isPlus) || 
+                (!name.equals(championName) && (championPoint < point) ) ) {
+            ArrayList<BPUserData> datas = BPUserData.getAllUserData();
+            BPUserData.sortUserData(datas);
+            refreshChampionNameWith(datas.get(0).name);
         }
     }
     
@@ -318,6 +318,67 @@ public class BattlePoints extends JavaPlugin {
      */
     public BPConfig getBPConfig() {
         return config;
+    }
+    
+    /**
+     * チャンピオンの名前を返す
+     * @return チャンピオン
+     */
+    protected String getChampionName() {
+        return championName;
+    }
+    
+    /**
+     * チャンピオンの更新を行う
+     * @param name 
+     */
+    protected void refreshChampionNameWith(String name) {
+        
+        if ( championName == null ) {
+            championName = name;
+            championPoint = BPUserData.getData(name).point;
+            
+            // Vault連携の場合は、ここでPrefixを設定する
+            if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
+                String pre = config.getChampionPrefix();
+                
+                for ( String world : config.getDisplayPointOnChatWorlds() ) {
+                    String worldpre = vcbridge.getPlayerPrefix(world, championName);
+                    if ( !worldpre.startsWith(pre) ) {
+                        vcbridge.setPlayerPrefix(world, championName, pre + worldpre);
+                    }
+                }
+            }
+            
+        } else {
+            if ( championName.equals(name) ) {
+                return; // チャンピオンに変化が無いので何もしない
+            }
+            
+            String prevChamp = championName;
+            championName = name;
+            championPoint = BPUserData.getData(name).point;
+            
+             // Vault連携の場合は、ここでPrefixを設定する
+            if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
+                String pre = config.getChampionPrefix();
+                
+                for ( String world : config.getDisplayPointOnChatWorlds() ) {
+                    
+                    // 以前のチャンピオンからprefixを取り去る
+                    String worldpre = vcbridge.getPlayerPrefix(world, prevChamp);
+                    if ( worldpre.startsWith(pre) ) {
+                        vcbridge.setPlayerPrefix(world, prevChamp, worldpre.substring(pre.length()));
+                    }
+                    
+                    // 新しいチャンピオンにprefixを与える
+                    worldpre = vcbridge.getPlayerPrefix(world, championName);
+                    if ( !worldpre.startsWith(pre) ) {
+                        vcbridge.setPlayerPrefix(world, championName, pre + worldpre);
+                    }
+                }
+            }
+        }
     }
     
     /**

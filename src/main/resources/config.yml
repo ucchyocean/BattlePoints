@@ -3,12 +3,12 @@
 # @license    LGPLv3
 # @copyright  Copyright ucchy 2013
 
-useVault: false
-
-listenPlayerDeathEvent: true
-
 displayPointOnChat: true
 displayPointOnChatWorlds: ['world']
+useVault: false
+championPrefix: '{&bChamp&f}'
+
+listenPlayerDeathEvent: true
 
 useWebstat: true
 webstatPortNumber: 8106
@@ -28,16 +28,16 @@ ranks:
   bronze:
     symbol: 'B'
     color: 'aqua'
-    border: 1600
+    border: 1700
   silver:
     symbol: 'S'
     color: 'gold'
-    border: 1700
+    border: 1900
   gold:
     symbol: 'G'
     color: 'red'
-    border: 1800
+    border: 2200
   platinum:
     symbol: 'P'
     color: 'light_purple'
-    border: 1900
+    border: 2500

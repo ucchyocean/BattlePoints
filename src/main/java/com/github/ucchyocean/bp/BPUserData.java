@@ -77,7 +77,7 @@ public class BPUserData {
     /**
      * このBPUserDataオブジェクトを保存する
      */
-    public void save() {
+    protected void save() {
 
         needRefresh = true;
         
@@ -107,11 +107,18 @@ public class BPUserData {
     /**
      * 全データを再読み込みして、キャッシュを初期化する。
      */
-    public static void initCache() {
+    protected static void initCache() {
         
         cache = new HashMap<String, BPUserData>();
         for ( BPUserData data : getAllUserData() ) {
             cache.put(data.name, data);
+        }
+        
+        // 1位を調べて更新する
+        if ( cache.size() > 0 ) {
+            ArrayList<BPUserData> datas = getAllUserData();
+            sortUserData(datas);
+            BattlePoints.instance.refreshChampionNameWith(datas.get(0).name);
         }
     }
     

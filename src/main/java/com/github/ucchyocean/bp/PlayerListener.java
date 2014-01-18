@@ -89,9 +89,16 @@ public class PlayerListener implements Listener {
             String rank = config.getRankFromPoint(point);
             String symbol = config.getSymbolFromRank(rank);
             String color = config.getColorFromRank(rank);
+            
+            String champName = BattlePoints.instance.getChampionName();
+            String champPre = "";
+            if ( player.getName().equals(champName) ) {
+                champPre = BattlePoints.getInstance().getBPConfig().getChampionPrefix();
+            }
+            
             String format = String.format(
-                    "<%s&f>[%s%s%d&f]&r %s",
-                    "%1$s", color, symbol, point, "%2$s");
+                    "%s<%s&f>[%s%s%d&f]&r %s",
+                    champPre, "%1$s", color, symbol, point, "%2$s");
             event.setFormat(Utility.replaceColorCode(format));
         }
     }
@@ -118,7 +125,7 @@ public class PlayerListener implements Listener {
                     "&f[%s%s%d&f]", color, symbol, point);
             
             for ( String world : config.getDisplayPointOnChatWorlds() ) {
-                BattlePoints.vcbridge.setPlayerSuffix(world, player, suffix);
+                BattlePoints.vcbridge.setPlayerSuffix(world, player.getName(), suffix);
             }
         }
     }

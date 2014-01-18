@@ -25,6 +25,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 public class BPConfig {
 
     private boolean useVault;
+    private String championPrefix;
     private boolean listenPlayerDeathEvent;
     private boolean displayPointOnChat;
     private List<String> displayPointOnChatWorlds;
@@ -68,6 +69,7 @@ public class BPConfig {
         // 各コンフィグの取得
         BPConfig conf = new BPConfig();
         conf.useVault = config.getBoolean("useVault", false);
+        conf.championPrefix = config.getString("championPrefix", "{&bChamp&f}");
         conf.listenPlayerDeathEvent = config.getBoolean("listenPlayerDeathEvent", true);
         conf.displayPointOnChat = config.getBoolean("displayPointOnChat", true);
         if ( config.contains("displayPointOnChatWorlds") ) {
@@ -216,6 +218,10 @@ public class BPConfig {
 
     public boolean isUseVault() {
         return useVault;
+    }
+    
+    public String getChampionPrefix() {
+        return championPrefix;
     }
 
     public boolean isListenPlayerDeathEvent() {

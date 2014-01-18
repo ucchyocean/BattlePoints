@@ -8,7 +8,6 @@ package com.github.ucchyocean.bp.bridge;
 import net.milkbowl.vault.chat.Chat;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 /**
@@ -44,30 +43,32 @@ public class VaultChatBridge {
     }
 
     /**
-     * プレイヤーのsuffixを取得します。
+     * プレイヤーのprefixを取得します。
+     * @param world ワールド
      * @param player プレイヤー
-     * @return プレイヤーのsuffix
+     * @return プレイヤーのprefix
      */
-    public String getPlayerSuffix(Player player) {
-        return chatPlugin.getPlayerSuffix(player);
+    public String getPlayerPrefix(String world, String player) {
+        return chatPlugin.getPlayerPrefix(world, player);
     }
 
     /**
-     * プレイヤーのsuffixを設定します。
+     * プレイヤーのprefixを設定します。
+     * @param world ワールド
      * @param player プレイヤー
-     * @return プレイヤーのsuffix
+     * @param prefix プレイヤーのprefix
      */
-    public void setPlayerSuffix(Player player, String suffix) {
-        chatPlugin.setPlayerSuffix(player, suffix);
+    public void setPlayerPrefix(String world, String player, String prefix) {
+        chatPlugin.setPlayerPrefix(world, player, prefix);
     }
 
     /**
      * プレイヤーのsuffixを設定します。
      * @param world ワールド
      * @param player プレイヤー
-     * @return プレイヤーのsuffix
+     * @param suffix プレイヤーのsuffix
      */
-    public void setPlayerSuffix(String world, Player player, String suffix) {
-        chatPlugin.setPlayerSuffix(world, player.getName(), suffix);
+    public void setPlayerSuffix(String world, String player, String suffix) {
+        chatPlugin.setPlayerSuffix(world, player, suffix);
     }
 }
