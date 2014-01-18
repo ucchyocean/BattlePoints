@@ -23,7 +23,6 @@ public class PlayerFaceDownloader {
 
     private static final String URL_SKIN = "http://s3.amazonaws.com/MinecraftSkins/%s.png";
     
-    
     /**
      * 指定したプレイヤー名のスキンをダウンロードし、顔の部分を切り抜いて保存する。
      * @param playerName プレイヤー名
@@ -54,18 +53,14 @@ public class PlayerFaceDownloader {
             boolean transp = false;
             int v = trans[0];
             for ( int i=0; i<64; i++ ) {
-                if ( (trans[i] & 0xFF000000) == 0) {
-                    transp = true;
-                    break;
-                }
-                else if (trans[i] != v) {
+                if ( (trans[i] & 0xFF000000) == 0 || trans[i] != v) {
                     transp = true;
                     break;
                 }
             }
             if (transp) {
                 for ( int i=0; i<64; i++ ) {
-                    if ( (trans[i] & 0xFF000000) != 0) {
+                    if ( (trans[i] & 0xFF000000) != 0 && trans[i] != v ) {
                         face[i] = trans[i];
                     }
                 }
@@ -94,5 +89,13 @@ public class PlayerFaceDownloader {
             }
             return false;
         }
+    }
+    
+    // デバッグ用エントリ
+    public static void main(String[] args) {
+        
+        String playerName = "miloxx3";
+        File file = new File(".", "/test/" + playerName + ".png");
+        downloadSkin(playerName, file, false);
     }
 }
