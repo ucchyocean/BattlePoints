@@ -201,7 +201,11 @@ public class BPUserData {
      * @return BPUserData
      */
     public static BPUserData getData(String name) {
-
+        
+        if ( name == null || name.equals("") ) {
+            return null;
+        }
+        
         if ( cache.containsKey(name) ) {
             return cache.get(name);
         }
@@ -225,6 +229,21 @@ public class BPUserData {
         int kills = config.getInt("kills", 0);
         int deaths = config.getInt("deaths", 0);
         return new BPUserData(name, point, kills, deaths);
+    }
+    
+    /**
+     * 指定したプレイヤーのポイントを返す
+     * @param name プレイヤー名
+     * @return ポイント
+     */
+    public static int getPoint(String name) {
+        
+        BPUserData data = getData(name);
+        if ( data != null ) {
+            return data.getPoint();
+        } else {
+            return 0;
+        }
     }
 
     /**

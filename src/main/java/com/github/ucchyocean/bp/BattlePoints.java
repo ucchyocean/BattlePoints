@@ -36,9 +36,6 @@ public class BattlePoints extends JavaPlugin {
     /** 現在1位のプレイヤー名 */
     private String championName;
     
-    /** 現在1位のプレイヤーポイント */
-    private int championPoint;
-    
     /** スコアボードのオブジェクティブ */
     private Objective objective;
     
@@ -258,6 +255,7 @@ public class BattlePoints extends JavaPlugin {
         // チャンピオンのポイントが減算されたか、
         // チャンピオン以外の人のポイントがチャンピオンのポイントを超えたなら、
         // チャンピオンの更新を確認する
+        int championPoint = BPUserData.getPoint(championName);
         if ( (name.equals(championName) && !isPlus) || 
                 (!name.equals(championName) && (championPoint < point) ) ) {
             ArrayList<BPUserData> datas = BPUserData.getAllUserData();
@@ -336,7 +334,6 @@ public class BattlePoints extends JavaPlugin {
         
         if ( championName == null ) {
             championName = name;
-            championPoint = BPUserData.getData(name).point;
             
             // Vault連携の場合は、ここでPrefixを設定する
             if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
@@ -357,7 +354,6 @@ public class BattlePoints extends JavaPlugin {
             
             String prevChamp = championName;
             championName = name;
-            championPoint = BPUserData.getData(name).point;
             
              // Vault連携の場合は、ここでPrefixを設定する
             if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
