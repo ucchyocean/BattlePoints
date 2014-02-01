@@ -5,13 +5,9 @@
  */
 package com.github.ucchyocean.bp;
 
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -43,16 +39,7 @@ public class PlayerListener implements Listener {
         Player loser = event.getEntity();
 
         // killer を取得。
-        // 直接攻撃で倒された場合は、killerをそのまま使う
-        // 間接攻撃で倒された場合は、shooterを取得して使う
         Player winner = loser.getKiller();
-        if ( (winner != null) && (winner instanceof Projectile) ) {
-            EntityDamageEvent cause = loser.getLastDamageCause();
-            LivingEntity shooter = ((Projectile) winner).getShooter();
-            if ( cause instanceof EntityDamageByEntityEvent && shooter instanceof Player ) {
-                winner = (Player)shooter;
-            }
-        }
 
         // killer が取得できなかったら、ここで諦める
         if ( winner == null ) {
