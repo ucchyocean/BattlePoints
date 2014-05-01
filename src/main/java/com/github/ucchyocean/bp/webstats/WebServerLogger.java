@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2014
  */
-package com.github.ucchyocean.bp.webstat;
+package com.github.ucchyocean.bp.webstats;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,7 +39,7 @@ public class WebServerLogger {
         Date date = new Date();
         String now = formatForLine.format(date);
         File file = new File(
-                BattlePoints.getInstance().getWebstatLogFolder(), 
+                BattlePoints.getInstance().getWebstatsLogFolder(), 
                 formatForFileName.format(date));
 
         BufferedWriter writer = null;

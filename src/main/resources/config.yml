@@ -10,9 +10,9 @@ championPrefix: '{&bChamp&f}'
 
 listenPlayerDeathEvent: true
 
-useWebstat: true
-webstatPortNumber: 8106
-webstatRefreshIntervalSeconds: 60
+useWebstats: true
+webstatsPortNumber: 8106
+webstatsRefreshIntervalSeconds: 60
 
 initialPoint: 1500
 winBasePoint: 16

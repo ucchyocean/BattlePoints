@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2014
  */
-package com.github.ucchyocean.bp.webstat;
+package com.github.ucchyocean.bp.webstats;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -16,21 +16,21 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.github.ucchyocean.bp.BattlePoints;
 
 /**
- * Webstatサーバー
+ * Webstatsサーバー
  * @author ucchy
  */
 public class BPWebServer extends BukkitRunnable {
 
     private ServerSocket server;
     private boolean isRunning;
-    
+
     /**
      * Webサーバーの開始処理
      * @see java.lang.Runnable#run()
      */
     @Override
     public void run() {
-        
+
         int port = BattlePoints.getInstance().getBPConfig().getWebstatPortNumber();
         Logger logger = BattlePoints.getInstance().getLogger();
         FileCache cache = new FileCache();
@@ -46,7 +46,7 @@ public class BPWebServer extends BukkitRunnable {
             while (true) {
                 // 接続待ち
                 Socket client = server.accept();
-                
+
                 // 接続処理スレッド
                 ConnectionThread ct = new ConnectionThread(client, cache, sorter);
                 ct.start();
@@ -62,7 +62,7 @@ public class BPWebServer extends BukkitRunnable {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Webサーバーの停止処理
      */

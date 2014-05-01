@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2014
  */
-package com.github.ucchyocean.bp.webstat;
+package com.github.ucchyocean.bp.webstats;
 
 import java.io.DataInputStream;
 import java.io.File;

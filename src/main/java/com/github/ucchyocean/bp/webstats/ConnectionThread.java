@@ -3,7 +3,7 @@
  * @license    LGPLv3
  * @copyright  Copyright ucchy 2014
  */
-package com.github.ucchyocean.bp.webstat;
+package com.github.ucchyocean.bp.webstats;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -105,7 +105,7 @@ public class ConnectionThread extends Thread {
             }
 
             File file = new File(
-                    BattlePoints.getInstance().getWebstatContentFolder(), 
+                    BattlePoints.getInstance().getWebstatsContentFolder(), 
                     requestFile);
             
             // 顔画像のリクエストなら、更新をまず行う

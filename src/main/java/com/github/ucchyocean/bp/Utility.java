@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -27,7 +29,8 @@ import org.bukkit.ChatColor;
 public class Utility {
 
     /**
-     * jarファイルの中に格納されているファイルを、jarファイルの外にコピーするメソッド
+     * jarファイルの中に格納されているテキストファイルを、jarファイルの外にコピーするメソッド<br/>
+     * WindowsだとS-JISで、MacintoshやLinuxだとUTF-8で保存されます。
      * @param jarFile jarファイル
      * @param targetFile コピー先
      * @param sourceFilePath コピー元
@@ -36,6 +39,7 @@ public class Utility {
     public static void copyFileFromJar(
             File jarFile, File targetFile, String sourceFilePath, boolean isBinary) {
 
+        JarFile jar = null;
         InputStream is = null;
         FileOutputStream fos = null;
         BufferedReader reader = null;
@@ -47,7 +51,7 @@ public class Utility {
         }
 
         try {
-            JarFile jar = new JarFile(jarFile);
+            jar = new JarFile(jarFile);
             ZipEntry zipEntry = jar.getEntry(sourceFilePath);
             is = jar.getInputStream(zipEntry);
 
@@ -80,6 +84,13 @@ public class Utility {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            if ( jar != null ) {
+                try {
+                    jar.close();
+                } catch (IOException e) {
+                    // do nothing.
+                }
+            }
             if ( writer != null ) {
                 try {
                     writer.flush();
@@ -106,6 +117,105 @@ public class Utility {
             if ( is != null ) {
                 try {
                     is.close();
+                } catch (IOException e) {
+                    // do nothing.
+                }
+            }
+        }
+    }
+
+    /**
+     * jarファイルの中に格納されているフォルダを、中のファイルごとまとめてjarファイルの外にコピーするメソッド<br/>
+     * テキストファイルは、WindowsだとS-JISで、MacintoshやLinuxだとUTF-8で保存されます。
+     * @param jarFile jarファイル
+     * @param targetFile コピー先のフォルダ
+     * @param sourceFilePath コピー元のフォルダ
+     */
+    public static void copyFolderFromJar(
+            File jarFile, File targetFilePath, String sourceFilePath) {
+
+        JarFile jar = null;
+
+        if ( !targetFilePath.exists() ) {
+            targetFilePath.mkdirs();
+        }
+
+        try {
+            jar = new JarFile(jarFile);
+            Enumeration<JarEntry> entries = jar.entries();
+
+            while ( entries.hasMoreElements() ) {
+
+                JarEntry entry = entries.nextElement();
+                if ( !entry.isDirectory() && entry.getName().startsWith(sourceFilePath) ) {
+
+                    File targetFile = new File(targetFilePath,
+                            entry.getName().substring(sourceFilePath.length() + 1));
+                    if ( !targetFile.getParentFile().exists() ) {
+                        targetFile.getParentFile().mkdirs();
+                    }
+
+                    InputStream is = null;
+                    FileOutputStream fos = null;
+                    BufferedReader reader = null;
+                    BufferedWriter writer = null;
+
+                    try {
+                        is = jar.getInputStream(entry);
+                        reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                        fos = new FileOutputStream(targetFile);
+                        writer = new BufferedWriter(new OutputStreamWriter(fos));
+
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            writer.write(line);
+                            writer.newLine();
+                        }
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        if ( writer != null ) {
+                            try {
+                                writer.flush();
+                                writer.close();
+                            } catch (IOException e) {
+                                // do nothing.
+                            }
+                        }
+                        if ( reader != null ) {
+                            try {
+                                reader.close();
+                            } catch (IOException e) {
+                                // do nothing.
+                            }
+                        }
+                        if ( fos != null ) {
+                            try {
+                                fos.flush();
+                                fos.close();
+                            } catch (IOException e) {
+                                // do nothing.
+                            }
+                        }
+                        if ( is != null ) {
+                            try {
+                                is.close();
+                            } catch (IOException e) {
+                                // do nothing.
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if ( jar != null ) {
+                try {
+                    jar.close();
                 } catch (IOException e) {
                     // do nothing.
                 }

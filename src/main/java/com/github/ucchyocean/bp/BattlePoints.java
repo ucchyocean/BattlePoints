@@ -12,14 +12,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 import com.github.ucchyocean.bp.bridge.ColorTeamingBridge;
 import com.github.ucchyocean.bp.bridge.VaultChatBridge;
-import com.github.ucchyocean.bp.webstat.BPWebServer;
+import com.github.ucchyocean.bp.webstats.BPWebServer;
 
 /**
  * バトルポイントシステム プラグイン
@@ -42,11 +41,8 @@ public class BattlePoints extends JavaPlugin {
     /** コンフィグデータ */
     private BPConfig config;
 
-    /** Webstatサーバー */
+    /** Webstatsサーバー */
     private BPWebServer webserver;
-
-    /** Webstatサーバーの起動タスク */
-    private BukkitTask webserverTask;
 
     /**
      * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
@@ -103,11 +99,10 @@ public class BattlePoints extends JavaPlugin {
             s.setScore(data.getPoint());
         }
 
-        // Webstatサーバーの起動
+        // Webstatsサーバーの起動
         if ( config.isUseWebstat() ) {
             webserver = new BPWebServer();
-            webserverTask =
-                    getServer().getScheduler().runTaskAsynchronously(this, webserver);
+            webserver.runTaskAsynchronously(this);
         }
     }
 
@@ -116,9 +111,11 @@ public class BattlePoints extends JavaPlugin {
      */
     @Override
     public void onDisable() {
+
+        // Webstatsサーバーの停止
         if ( webserver != null ) {
             webserver.stop();
-            getServer().getScheduler().cancelTask(webserverTask.getTaskId());
+            webserver.cancel();
         }
     }
 
@@ -147,11 +144,11 @@ public class BattlePoints extends JavaPlugin {
     }
 
     /**
-     * Webstatのコンテンツフォルダを取得する
+     * Webstatsのコンテンツフォルダを取得する
      * @return コンテンツフォルダ
      */
-    public File getWebstatContentFolder() {
-        File file = new File(instance.getDataFolder(), "webstat");
+    public File getWebstatsContentFolder() {
+        File file = new File(instance.getDataFolder(), "webstats");
         if ( !file.exists() ) {
             file.mkdirs();
         }
@@ -159,11 +156,11 @@ public class BattlePoints extends JavaPlugin {
     }
 
     /**
-     * Webstatのログフォルダを取得する
+     * Webstatsのログフォルダを取得する
      * @return ログフォルダ
      */
-    public File getWebstatLogFolder() {
-        File file = new File(instance.getDataFolder(), "webstat-log");
+    public File getWebstatsLogFolder() {
+        File file = new File(instance.getDataFolder(), "webstats-log");
         if ( !file.exists() ) {
             file.mkdirs();
         }
@@ -388,6 +385,13 @@ public class BattlePoints extends JavaPlugin {
         // メッセージの初期化
         Messages.initialize();
         prefix = Messages.get("prefix");
+
+        // Webstatsフォルダが存在しない場合は、jarファイルの中からコピーする
+        File webstatsDir = new File(getDataFolder(), "webstats");
+        if ( !webstatsDir.exists() || !webstatsDir.isDirectory() ) {
+            webstatsDir.mkdirs();
+            Utility.copyFolderFromJar(getFile(), webstatsDir, "webstats");
+        }
     }
 
     /**

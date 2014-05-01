@@ -29,9 +29,9 @@ public class BPConfig {
     private boolean listenPlayerDeathEvent;
     private boolean displayPointOnChat;
     private List<String> displayPointOnChatWorlds;
-    private boolean useWebstat;
-    private int webstatPortNumber;
-    private int webstatRefreshIntervalSeconds;
+    private boolean useWebstats;
+    private int webstatsPortNumber;
+    private int webstatsRefreshIntervalSeconds;
     private int initialPoint;
     private int winBasePoint;
     private int winOffsetPoint;
@@ -73,16 +73,16 @@ public class BPConfig {
         conf.listenPlayerDeathEvent = config.getBoolean("listenPlayerDeathEvent", true);
         conf.displayPointOnChat = config.getBoolean("displayPointOnChat", true);
         if ( config.contains("displayPointOnChatWorlds") ) {
-            conf.displayPointOnChatWorlds 
+            conf.displayPointOnChatWorlds
                 = config.getStringList("displayPointOnChatWorlds");
         } else {
             conf.displayPointOnChatWorlds = new ArrayList<String>();
             conf.displayPointOnChatWorlds.add("world");
         }
-        conf.useWebstat = config.getBoolean("useWebstat", true);
-        conf.webstatPortNumber = config.getInt("webstatPortNumber", 8106);
-        conf.webstatRefreshIntervalSeconds = 
-                config.getInt("webstatRefreshIntervalSeconds", 60);
+        conf.useWebstats = config.getBoolean("useWebstats", true);
+        conf.webstatsPortNumber = config.getInt("webstatsPortNumber", 8106);
+        conf.webstatsRefreshIntervalSeconds =
+                config.getInt("webstatsRefreshIntervalSeconds", 60);
         conf.initialPoint = config.getInt("initialPoint", 1500);
         conf.winBasePoint = config.getInt("winBasePoint", 16);
         conf.winOffsetPoint = config.getInt("winOffsetPoint", 2);
@@ -142,7 +142,7 @@ public class BPConfig {
                 return val1.compareTo(val2);
             }
         });
-        
+
         return conf;
     }
 
@@ -180,20 +180,20 @@ public class BPConfig {
         }
         return "";
     }
-    
+
     /**
      * 称号名から、ランクカラーを取得する
      * @param rank 称号名
      * @return ランクカラー（§n 形式の文字列で返します）
      */
     public String getColorFromRank(String rank) {
-        
+
         if ( rankColors.containsKey(rank) ) {
             return rankColors.get(rank).toString();
         }
         return "";
     }
-    
+
     /**
      * ポイント数から、ランクカラーを取得する
      * @param point ポイント
@@ -202,14 +202,14 @@ public class BPConfig {
     public String getColorFromPoint(int point) {
         return getColorFromRank(getRankFromPoint(point));
     }
-    
+
     /**
      * 称号名から、ランクシンボルを取得する
      * @param rank 称号名
      * @return ランクシンボル
      */
     public String getSymbolFromRank(String rank) {
-        
+
         if ( rankSymbols.containsKey(rank) ) {
             return rankSymbols.get(rank);
         }
@@ -219,7 +219,7 @@ public class BPConfig {
     public boolean isUseVault() {
         return useVault;
     }
-    
+
     public String getChampionPrefix() {
         return championPrefix;
     }
@@ -237,15 +237,15 @@ public class BPConfig {
     }
 
     public boolean isUseWebstat() {
-        return useWebstat;
+        return useWebstats;
     }
 
     public int getWebstatPortNumber() {
-        return webstatPortNumber;
+        return webstatsPortNumber;
     }
-    
+
     public int webstatRefreshIntervalSeconds() {
-        return webstatRefreshIntervalSeconds;
+        return webstatsRefreshIntervalSeconds;
     }
 
     public int getInitialPoint() {
