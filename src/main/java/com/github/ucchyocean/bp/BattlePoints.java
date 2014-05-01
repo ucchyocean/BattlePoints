@@ -32,19 +32,19 @@ public class BattlePoints extends JavaPlugin {
     protected static BattlePoints instance;
     protected static VaultChatBridge vcbridge;
     protected static ColorTeamingBridge ctbridge;
-    
+
     /** 現在1位のプレイヤー名 */
     private String championName;
-    
+
     /** スコアボードのオブジェクティブ */
     private Objective objective;
-    
+
     /** コンフィグデータ */
     private BPConfig config;
-    
+
     /** Webstatサーバー */
     private BPWebServer webserver;
-    
+
     /** Webstatサーバーの起動タスク */
     private BukkitTask webserverTask;
 
@@ -55,7 +55,7 @@ public class BattlePoints extends JavaPlugin {
     public void onEnable() {
 
         instance = this;
-        
+
         // 設定のロード
         reloadDatas();
 
@@ -84,10 +84,10 @@ public class BattlePoints extends JavaPlugin {
         if ( getServer().getPluginManager().isPluginEnabled("Vault") ) {
             vcbridge = VaultChatBridge.load();
         }
-        
+
         // ユーザーデータのキャッシュ生成
         BPUserData.initCache();
-        
+
         // objectiveの取得
         Scoreboard sb = getServer().getScoreboardManager().getMainScoreboard();
         objective = sb.getObjective("battlepoints");
@@ -95,22 +95,22 @@ public class BattlePoints extends JavaPlugin {
             objective = sb.registerNewObjective("battlepoints", "dummy");
             objective.setDisplayName("points");
         }
-        
+
         // 全プレイヤーのスコア更新
         ArrayList<BPUserData> datas = BPUserData.getAllUserData();
         for ( BPUserData data : datas ) {
-            Score s = objective.getScore(Bukkit.getOfflinePlayer(data.getName()));
+            Score s = getScore(objective, data.getName());
             s.setScore(data.getPoint());
         }
-        
+
         // Webstatサーバーの起動
         if ( config.isUseWebstat() ) {
             webserver = new BPWebServer();
-            webserverTask = 
+            webserverTask =
                     getServer().getScheduler().runTaskAsynchronously(this, webserver);
         }
     }
-    
+
     /**
      * @see org.bukkit.plugin.java.JavaPlugin#onDisable()
      */
@@ -121,7 +121,7 @@ public class BattlePoints extends JavaPlugin {
             getServer().getScheduler().cancelTask(webserverTask.getTaskId());
         }
     }
-    
+
     /**
      * BattlePointsのインスタンスを返す
      * @return インスタンス
@@ -145,7 +145,7 @@ public class BattlePoints extends JavaPlugin {
     public static File getPluginJarFile() {
         return instance.getFile();
     }
-    
+
     /**
      * Webstatのコンテンツフォルダを取得する
      * @return コンテンツフォルダ
@@ -157,7 +157,7 @@ public class BattlePoints extends JavaPlugin {
         }
         return file;
     }
-    
+
     /**
      * Webstatのログフォルダを取得する
      * @return ログフォルダ
@@ -194,7 +194,7 @@ public class BattlePoints extends JavaPlugin {
         if ( newLoserPoint < 0 ) {
             newLoserPoint = 0;
         }
-        
+
         // 更新を行い再取得する
         setPoint(winner.getName(), newWinnerPoint);
         addKill(winner.getName(), 1);
@@ -207,63 +207,63 @@ public class BattlePoints extends JavaPlugin {
         String wColor = config.getColorFromPoint(winnerData.point);
         String lColor = config.getColorFromPoint(loserData.point);
         broadcastMessage("battleResult",
-                wColor, winner.getName(),  winnerData.point, winnerRate, 
+                wColor, winner.getName(),  winnerData.point, winnerRate,
                 lColor, loser.getName(), loserData.point, loserRate);
     }
-    
+
     /**
      * 指定したプレイヤー名のポイントを再設定する
      * @param name プレイヤー名
      * @param point ポイント
      */
     public void setPoint(String name, int point) {
-        
+
         BPUserData data = BPUserData.getData(name);
-        
+
         // 変動前のランクを取得しておく
         String oldRank = config.getRankFromPoint(data.point);
         boolean isPlus = data.point < point;
-        
+
         // ポイント更新と保存
         data.point = point;
         data.save();
-        
+
         // スコアボード更新
-        Score score = objective.getScore(Bukkit.getOfflinePlayer(name));
+        Score score = getScore(objective, name);
         score.setScore(data.point);
-        
+
         // ランクが変動するなら、メッセージを送信する
         String rank = config.getRankFromPoint(data.point);
         if ( !oldRank.equals(rank) ) {
-            if ( isPlus ) 
+            if ( isPlus )
                 broadcastMessage("rankup", name, rank);
-            else 
+            else
                 broadcastMessage("rankdown", name, rank);
         }
-        
+
         // Vault連携の場合は、ここでSuffixを設定する
         if ( config.isDisplayPointOnChat() && config.isUseVault() && vcbridge != null ) {
             String symbol = config.getSymbolFromRank(rank);
             String color = config.getColorFromRank(rank);
             String suffix = String.format("&f[%s%s%d&f]", color, symbol, point);
-            
+
             for ( String world : config.getDisplayPointOnChatWorlds() ) {
                 BattlePoints.vcbridge.setPlayerSuffix(world, name, suffix);
             }
         }
-        
+
         // チャンピオンのポイントが減算されたか、
         // チャンピオン以外の人のポイントがチャンピオンのポイントを超えたなら、
         // チャンピオンの更新を確認する
         int championPoint = BPUserData.getPoint(championName);
-        if ( (name.equals(championName) && !isPlus) || 
+        if ( (name.equals(championName) && !isPlus) ||
                 (!name.equals(championName) && (championPoint < point) ) ) {
             ArrayList<BPUserData> datas = BPUserData.getAllUserData();
             BPUserData.sortUserData(datas);
             refreshChampionNameWith(datas.get(0).name);
         }
     }
-    
+
     /**
      * 指定したプレイヤー名のポイントを追加する
      * @param name プレイヤー名
@@ -275,7 +275,7 @@ public class BattlePoints extends JavaPlugin {
         setPoint(name, newpoint);
         return newpoint;
     }
-    
+
     /**
      * 指定したプレイヤー名のキル数を追加する
      * @param name プレイヤー名
@@ -292,7 +292,7 @@ public class BattlePoints extends JavaPlugin {
         data.save();
         return newpoint;
     }
-    
+
     /**
      * 指定したプレイヤー名のデス数を追加する
      * @param name プレイヤー名
@@ -309,7 +309,7 @@ public class BattlePoints extends JavaPlugin {
         data.save();
         return newpoint;
     }
-    
+
     /**
      * BattlePointsの設定データを取得する
      * @return BattlePointsの設定データ
@@ -317,7 +317,7 @@ public class BattlePoints extends JavaPlugin {
     public BPConfig getBPConfig() {
         return config;
     }
-    
+
     /**
      * チャンピオンの名前を返す
      * @return チャンピオン
@@ -325,20 +325,20 @@ public class BattlePoints extends JavaPlugin {
     protected String getChampionName() {
         return championName;
     }
-    
+
     /**
      * チャンピオンの更新を行う
-     * @param name 
+     * @param name
      */
     protected void refreshChampionNameWith(String name) {
-        
+
         if ( championName == null ) {
             championName = name;
-            
+
             // Vault連携の場合は、ここでPrefixを設定する
             if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
                 String pre = config.getChampionPrefix();
-                
+
                 for ( String world : config.getDisplayPointOnChatWorlds() ) {
                     String worldpre = vcbridge.getPlayerPrefix(world, championName);
                     if ( !worldpre.startsWith(pre) ) {
@@ -346,27 +346,27 @@ public class BattlePoints extends JavaPlugin {
                     }
                 }
             }
-            
+
         } else {
             if ( championName.equals(name) ) {
                 return; // チャンピオンに変化が無いので何もしない
             }
-            
+
             String prevChamp = championName;
             championName = name;
-            
+
              // Vault連携の場合は、ここでPrefixを設定する
             if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
                 String pre = config.getChampionPrefix();
-                
+
                 for ( String world : config.getDisplayPointOnChatWorlds() ) {
-                    
+
                     // 以前のチャンピオンからprefixを取り去る
                     String worldpre = vcbridge.getPlayerPrefix(world, prevChamp);
                     if ( worldpre.startsWith(pre) ) {
                         vcbridge.setPlayerPrefix(world, prevChamp, worldpre.substring(pre.length()));
                     }
-                    
+
                     // 新しいチャンピオンにprefixを与える
                     worldpre = vcbridge.getPlayerPrefix(world, championName);
                     if ( !worldpre.startsWith(pre) ) {
@@ -376,12 +376,12 @@ public class BattlePoints extends JavaPlugin {
             }
         }
     }
-    
+
     /**
      * 設定ファイルなどのリロード処理
      */
     public void reloadDatas() {
-        
+
         // 設定の読み込み処理
         config = BPConfig.load();
 
@@ -402,5 +402,22 @@ public class BattlePoints extends JavaPlugin {
             return;
         }
         Bukkit.broadcastMessage(Utility.replaceColorCode(prefix + msg));
+    }
+
+    /**
+     * スコアボードのスコア項目を取得する
+     * @param objective オブジェクティブ
+     * @param playerName プレイヤー名
+     * @return スコア
+     */
+    private static Score getScore(Objective objective, String playerName) {
+
+        if ( Utility.isCB178orLater() ) {
+            return objective.getScore(playerName);
+        } else {
+            @SuppressWarnings("deprecation")
+            Score score = objective.getScore(Bukkit.getOfflinePlayer(playerName));
+            return score;
+        }
     }
 }

@@ -37,18 +37,18 @@ public class ColorTeamingBridge implements Listener {
 
     /** BattlePointsクラス */
     private BattlePoints battlepoints;
-    
+
     /** ColroTeamingクラス */
     private ColorTeaming colorteaming;
-    
+
     /** チームメンバーのキャッシュ */
     private HashMap<String, String> membersCache;
-    
+
     /** コンストラクタは使用不可 */
     private ColorTeamingBridge() {
         membersCache = new HashMap<String, String>();
     }
-    
+
     /**
      * ColroTeamingをロードする
      * @param battlepoints BattlePointsクラスのインスタンス
@@ -56,13 +56,13 @@ public class ColorTeamingBridge implements Listener {
      * @return ロードされたColorTeamingBridge
      */
     public static ColorTeamingBridge load(BattlePoints battlepoints, Plugin colorteaming) {
-        
+
         ColorTeamingBridge bridge = new ColorTeamingBridge();
         bridge.battlepoints = battlepoints;
         bridge.colorteaming = (ColorTeaming)colorteaming;
         return bridge;
     }
-    
+
     /**
      * BattlePointに応じてチーム分けをする
      * @param sender
@@ -91,92 +91,93 @@ public class ColorTeamingBridge implements Listener {
 
         // ポイント順でソートする
         BPUserData.sortPlayerByPoint(players);
-        
+
         // チームわけを実行する
         api.makeColorTeamsWithOrderSelection(players, numberOfGroups);
 
         return true;
     }
-    
+
     /**
      * プレイヤーがチームに参加したときに発生するイベント
-     * @param event 
+     * @param event
      */
     @EventHandler
     public void onTeamSet(ColorTeamingPlayerAddEvent event) {
-        
+
         String player = event.getPlayer().getName();
         String team = event.getTeam().getName();
         membersCache.put(player, team);
     }
-    
+
     /**
      * 殲滅戦の形式で、勝利チームが決定したときに発生するイベント
-     * @param event 
+     * @param event
      */
     @EventHandler
     public void onTeamWin(ColorTeamingWonTeamEvent event) {
-        
+
         String name = event.getWonTeamName().getID();
-        String displayName = 
+        String displayName =
                 event.getWonTeamName().getColor() + event.getWonTeamName().getName();
         sendBonusPointToWonTeam(name, displayName);
     }
-    
+
     /**
      * 大将戦の形式で、勝利チームが決定したときに発生するイベント
-     * @param event 
+     * @param event
      */
     @EventHandler
     public void onTeamLeaderWin(ColorTeamingWonLeaderEvent event) {
-        
+
         String name = event.getWonTeamName().getID();
-        String displayName = 
+        String displayName =
                 event.getWonTeamName().getColor() + event.getWonTeamName().getName();
         sendBonusPointToWonTeam(name, displayName);
     }
-    
+
     /**
      * 規定キル数を稼ぐ形式で、勝利チームが決定したときに発生するイベント
-     * @param event 
+     * @param event
      */
     @EventHandler
     public void onKillTrophy(ColorTeamingTrophyKillEvent event) {
-        
+
         String name = event.getTeam().getName();
         String displayName = event.getTeam().getDisplayName();
         sendBonusPointToWonTeam(name, displayName);
     }
-    
+
     /**
      * 勝利チームのメンバーにボーナスポイントを与える
      * @param team 勝利チーム名
      * @param displayName 勝利チーム表示名
      */
     private void sendBonusPointToWonTeam(String team, String displayName) {
-        
+
         // ボーナスポイント設定を取得。0なら何もしないで終わる
         int bonus = battlepoints.getBPConfig().getWinTeamBonusPoint();
         if ( bonus <= 0 ) {
             return;
         }
-        
+
         // 勝利チームのメンバーを取得する
         ArrayList<String> playerNames = new ArrayList<String>();
-        
+
         for ( String name : membersCache.keySet() ) {
             if ( membersCache.get(name).equals(team) ) {
                 playerNames.add(name);
             }
         }
-        
+
         // 勝利チームのメンバーが誰もいないならここで終わる
         if ( playerNames.size() == 0 ) {
             return;
         }
-        
+
         // ボーナスポイントを与える
         for ( String name : playerNames ) {
+            @SuppressWarnings("deprecation")
             Player player = Bukkit.getPlayerExact(name);
             if ( player == null ) {
                 continue;
@@ -185,11 +186,11 @@ public class ColorTeamingBridge implements Listener {
             BPUserData data = BPUserData.getData(name);
             sendMessage(player, "teamWonBonus", displayName, bonus, data.getPoint());
         }
-        
+
         // メンバーのキャッシュをクリアする
         membersCache.clear();
     }
-    
+
     /**
      * メッセージリソースを取得し、対象プレイヤーに送信する
      * @param player 送信先プレイヤー
