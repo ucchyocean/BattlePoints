@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -30,11 +31,14 @@ public class BPUserData {
             = new HashMap<String, BPUserData>();
 
     public static boolean needRefresh = true;
-    
+
     private File file;
 
     /** プレイヤー名 */
     protected String name;
+
+    /** プレイヤーUUID */
+    protected UUID id;
 
     /** ポイント */
     protected int point;
@@ -65,7 +69,7 @@ public class BPUserData {
         this.name = name;
         this.kills = kills;
         this.deaths = deaths;
-        
+
         if ( point == -1 ) {
             BPConfig config = BattlePoints.instance.getBPConfig();
             this.point = config.getInitialPoint();
@@ -80,7 +84,7 @@ public class BPUserData {
     protected void save() {
 
         needRefresh = true;
-        
+
         if ( saveFolder == null ) {
             saveFolder = new File(
                     BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
@@ -108,12 +112,12 @@ public class BPUserData {
      * 全データを再読み込みして、キャッシュを初期化する。
      */
     protected static void initCache() {
-        
+
         cache = new HashMap<String, BPUserData>();
         for ( BPUserData data : getAllUserData() ) {
             cache.put(data.name, data);
         }
-        
+
         // 1位を調べて更新する
         if ( cache.size() > 0 ) {
             ArrayList<BPUserData> datas = getAllUserData();
@@ -121,7 +125,7 @@ public class BPUserData {
             BattlePoints.instance.refreshChampionNameWith(datas.get(0).name);
         }
     }
-    
+
     /**
      * ArrayList&lt;BPUserData&gt; 型の配列を、降順にソートする。
      * @param data ソート対象の配列
@@ -201,15 +205,15 @@ public class BPUserData {
      * @return BPUserData
      */
     public static BPUserData getData(String name) {
-        
+
         if ( name == null || name.equals("") ) {
             return null;
         }
-        
+
         if ( cache.containsKey(name) ) {
             return cache.get(name);
         }
-        
+
         if ( saveFolder == null ) {
             saveFolder = new File(
                     BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
@@ -230,14 +234,14 @@ public class BPUserData {
         int deaths = config.getInt("deaths", 0);
         return new BPUserData(name, point, kills, deaths);
     }
-    
+
     /**
      * 指定したプレイヤーのポイントを返す
      * @param name プレイヤー名
      * @return ポイント
      */
     public static int getPoint(String name) {
-        
+
         BPUserData data = getData(name);
         if ( data != null ) {
             return data.getPoint();
@@ -255,7 +259,7 @@ public class BPUserData {
         if ( cache != null && cache.size() > 0 ) {
             return new ArrayList<BPUserData>(cache.values());
         }
-        
+
         if ( saveFolder == null ) {
             saveFolder = new File(
                     BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
@@ -280,7 +284,7 @@ public class BPUserData {
 
         return results;
     }
-    
+
     /**
      * プレイヤー名を取得する
      * @return プレイヤー名
@@ -288,7 +292,7 @@ public class BPUserData {
     public String getName() {
         return name;
     }
-    
+
     /**
      * ポイントを取得する
      * @return ポイント
@@ -296,23 +300,23 @@ public class BPUserData {
     public int getPoint() {
         return point;
     }
-    
+
     /**
      * K/Dレートを取得する
      * @return K/Dレート
      */
     public double getKDRate() {
-        
-        if ( deaths == 0 && kills > 0 ) 
+
+        if ( deaths == 0 && kills > 0 )
             return (double)kills;
-        else if ( deaths == 0 && kills == 0 ) 
+        else if ( deaths == 0 && kills == 0 )
             return 0;
-        else if ( deaths > 0 && kills == 0 ) 
+        else if ( deaths > 0 && kills == 0 )
             return -(double)deaths;
-        else 
+        else
             return (double)kills / (double)deaths;
     }
-    
+
     /**
      * キル数を取得する
      * @return キル数
@@ -320,7 +324,7 @@ public class BPUserData {
     public int getKillCount() {
         return kills;
     }
-    
+
     /**
      * デス数を取得する
      * @return デス数
@@ -328,7 +332,7 @@ public class BPUserData {
     public int getDeathCount() {
         return deaths;
     }
-    
+
     /**
      * 現在のポイントに該当するクラスランクを取得する
      * @return クラスランク

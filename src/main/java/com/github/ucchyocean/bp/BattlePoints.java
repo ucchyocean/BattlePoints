@@ -196,7 +196,7 @@ public class BattlePoints extends JavaPlugin {
         setPoint(winner.getName(), newWinnerPoint);
         addKill(winner.getName(), 1);
         setPoint(loser.getName(), newLoserPoint);
-        addKill(loser.getName(), 1);
+        addDeath(loser.getName(), 1);
         winnerData = BPUserData.getData(winner.getName());
         loserData = BPUserData.getData(loser.getName());
 
