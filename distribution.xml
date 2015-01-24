@@ -15,5 +15,11 @@
       <source>target/BattlePoints.jar</source>
     </file>
   </files>
+  <fileSets>
+    <fileSet>
+      <directory>src/main/resources/webstats</directory>
+      <outputDirectory>/BattlePoints/webstats</outputDirectory>
+    </fileSet>
+  </fileSets>
 
 </assembly>
