@@ -11,6 +11,7 @@ import java.util.HashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -182,8 +183,8 @@ public class ColorTeamingBridge implements Listener {
             if ( player == null ) {
                 continue;
             }
-            battlepoints.addPoint(name, bonus);
-            BPUserData data = BPUserData.getData(name);
+            battlepoints.addPoint(getOfflinePlayer(name), bonus);
+            BPUserData data = BPUserData.getData(getOfflinePlayer(name));
             sendMessage(player, "teamWonBonus", displayName, bonus, data.getPoint());
         }
 
@@ -207,4 +208,13 @@ public class ColorTeamingBridge implements Listener {
         player.sendMessage(Utility.replaceColorCode(prefix + msg));
     }
 
+    /**
+     * プレイヤー名からOfflinePlayerを取得する
+     * @param name プレイヤー名
+     * @return OfflinePlayer
+     */
+    @SuppressWarnings("deprecation")
+    private static OfflinePlayer getOfflinePlayer(String name) {
+        return Bukkit.getOfflinePlayer(name);
+    }
 }

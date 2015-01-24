@@ -8,6 +8,7 @@ package com.github.ucchyocean.bp.bridge;
 import net.milkbowl.vault.chat.Chat;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 /**
@@ -48,7 +49,7 @@ public class VaultChatBridge {
      * @param player プレイヤー
      * @return プレイヤーのprefix
      */
-    public String getPlayerPrefix(String world, String player) {
+    public String getPlayerPrefix(String world, OfflinePlayer player) {
         return chatPlugin.getPlayerPrefix(world, player);
     }
 
@@ -58,7 +59,7 @@ public class VaultChatBridge {
      * @param player プレイヤー
      * @param prefix プレイヤーのprefix
      */
-    public void setPlayerPrefix(String world, String player, String prefix) {
+    public void setPlayerPrefix(String world, OfflinePlayer player, String prefix) {
         chatPlugin.setPlayerPrefix(world, player, prefix);
     }
 
@@ -68,7 +69,7 @@ public class VaultChatBridge {
      * @param player プレイヤー
      * @param suffix プレイヤーのsuffix
      */
-    public void setPlayerSuffix(String world, String player, String suffix) {
+    public void setPlayerSuffix(String world, OfflinePlayer player, String suffix) {
         chatPlugin.setPlayerSuffix(world, player, suffix);
     }
 }

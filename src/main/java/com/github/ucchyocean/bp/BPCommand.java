@@ -7,7 +7,9 @@ package com.github.ucchyocean.bp;
 
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,12 +24,12 @@ public class BPCommand implements CommandExecutor {
     private static final String[] COMMANDS = {
         "rank", "kdrank", "krank", "drank", "set", "reload", "team",
     };
-    
+
     private BattlePoints plugin;
-    
+
     /**
      * コンストラクタ
-     * @param plugin 
+     * @param plugin
      */
     public BPCommand(BattlePoints plugin) {
         this.plugin = plugin;
@@ -87,7 +89,7 @@ public class BPCommand implements CommandExecutor {
         } else if ( args[0].equalsIgnoreCase("set") ) {
             if ( args.length >= 3 && Utility.tryIntParse(args[2]) ) {
                 int point = Integer.parseInt(args[2]);
-                plugin.setPoint(args[1], point);
+                plugin.setPoint(getOfflinePlayer(args[1]), point);
                 sender.sendMessage(ChatColor.GRAY +
                         "set player " + args[1] + " point to " + point + ".");
                 return true;
@@ -99,7 +101,7 @@ public class BPCommand implements CommandExecutor {
         } else if ( args[0].equalsIgnoreCase("add") ) {
             if ( args.length >= 3 && Utility.tryIntParse(args[2]) ) {
                 int point = Integer.parseInt(args[2]);
-                int newpoint = plugin.addPoint(args[1], point);
+                int newpoint = plugin.addPoint(getOfflinePlayer(args[1]), point);
                 sender.sendMessage(ChatColor.GRAY +
                         "set player " + args[1] + " point to " + newpoint + ".");
                 return true;
@@ -138,7 +140,7 @@ public class BPCommand implements CommandExecutor {
     private void viewRank(CommandSender sender, int numberOfView) {
         ArrayList<BPUserData> users = BPUserData.getAllUserData();
         BPUserData.sortUserData(users);
-        displayRanking(sender, users, numberOfView, 
+        displayRanking(sender, users, numberOfView,
                 "===== Battle Points Ranking =====");
     }
 
@@ -150,7 +152,7 @@ public class BPCommand implements CommandExecutor {
     private void viewKDRank(CommandSender sender, int numberOfView) {
         ArrayList<BPUserData> users = BPUserData.getAllUserData();
         BPUserData.sortUserDataByKDRate(users);
-        displayRanking(sender, users, numberOfView, 
+        displayRanking(sender, users, numberOfView,
                 "===== K/D Rate Ranking =====");
     }
 
@@ -162,7 +164,7 @@ public class BPCommand implements CommandExecutor {
     private void viewKillRank(CommandSender sender, int numberOfView) {
         ArrayList<BPUserData> users = BPUserData.getAllUserData();
         BPUserData.sortUserDataByKillCount(users);
-        displayRanking(sender, users, numberOfView, 
+        displayRanking(sender, users, numberOfView,
                 "===== Kill Count Ranking =====");
     }
 
@@ -174,21 +176,21 @@ public class BPCommand implements CommandExecutor {
     private void viewDeathRank(CommandSender sender, int numberOfView) {
         ArrayList<BPUserData> users = BPUserData.getAllUserData();
         BPUserData.sortUserDataByDeathCount(users);
-        displayRanking(sender, users, numberOfView, 
+        displayRanking(sender, users, numberOfView,
                 "===== Death Count Ranking =====");
     }
-    
+
     /**
      * senderにランキングデータを表示する
-     * @param sender 
-     * @param data 
-     * @param numberOfView 
+     * @param sender
+     * @param data
+     * @param numberOfView
      */
-    private void displayRanking(CommandSender sender, 
+    private void displayRanking(CommandSender sender,
             ArrayList<BPUserData> datas, int numberOfView, String headerString) {
-        
+
         BPConfig config = plugin.getBPConfig();
-        
+
         String playerName = null;
         boolean foundPlayer = false;
         if ( sender instanceof Player ) {
@@ -202,36 +204,36 @@ public class BPCommand implements CommandExecutor {
         }
 
         sender.sendMessage(ChatColor.LIGHT_PURPLE + headerString);
-        
+
         for ( int i=0; i<numberOfView; i++ ) {
             BPUserData data = datas.get(i);
-            String rank = config.getRankFromPoint(data.point);
+            String rank = config.getRankFromPoint(data.getPoint());
             String color = config.getColorFromRank(rank);
             double rate = data.getKDRate();
             ChatColor headColor = ChatColor.WHITE;
-            if ( data.name.equals(playerName) ) {
+            if ( data.getName().equals(playerName) ) {
                 foundPlayer = true;
                 headColor = ChatColor.RED;
             }
             sender.sendMessage(String.format(headColor +
                     "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
-                    (i+1), color, data.name, rank,
-                    data.point, data.kills, data.deaths, rate));
+                    (i+1), color, data.getName(), rank,
+                    data.getPoint(), data.getKills(), data.getDeaths(), rate));
         }
-        
+
         if ( !foundPlayer ) {
             for ( int i=numberOfView; i<datas.size(); i++ ) {
                 BPUserData data = datas.get(i);
-                if ( data.name.equals(playerName) ) {
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE 
+                if ( data.getName().equals(playerName) ) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE
                             + "===== Your Score =====");
-                    String rank = config.getRankFromPoint(data.point);
+                    String rank = config.getRankFromPoint(data.getPoint());
                     String color = config.getColorFromRank(rank);
                     double rate = data.getKDRate();
                     sender.sendMessage(String.format(ChatColor.RED +
                             "%d. %s%s - %s - %dP, %dK, %dD, %.2f%%",
-                            (i+1), color, data.name, rank,
-                            data.point, data.kills, data.deaths, rate));
+                            (i+1), color, data.getName(), rank,
+                            data.getPoint(), data.getKills(), data.getDeaths(), rate));
                     break;
                 }
             }
@@ -246,5 +248,15 @@ public class BPCommand implements CommandExecutor {
             }
         }
         return false;
+    }
+
+    /**
+     * プレイヤー名からOfflinePlayerを取得する
+     * @param name プレイヤー名
+     * @return OfflinePlayer
+     */
+    @SuppressWarnings("deprecation")
+    private static OfflinePlayer getOfflinePlayer(String name) {
+        return Bukkit.getOfflinePlayer(name);
     }
 }

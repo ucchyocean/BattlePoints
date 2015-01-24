@@ -14,6 +14,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
@@ -27,46 +29,43 @@ public class BPUserData {
 
     private static File saveFolder;
 
-    private static HashMap<String, BPUserData> cache
-            = new HashMap<String, BPUserData>();
+    private static HashMap<OfflinePlayer, BPUserData> cache
+            = new HashMap<OfflinePlayer, BPUserData>();
 
     public static boolean needRefresh = true;
 
     private File file;
 
-    /** プレイヤー名 */
-    protected String name;
-
-    /** プレイヤーUUID */
-    protected UUID id;
+    /** プレイヤー */
+    private OfflinePlayer player;
 
     /** ポイント */
-    protected int point;
+    private int point;
 
     /** キル数 */
-    protected int kills;
+    private int kills;
 
     /** デス数 */
-    protected int deaths;
+    private int deaths;
 
     /**
      * コンストラクタ。pointは初期値になる。
-     * @param name プレイヤー名
+     * @param player プレイヤー名
      */
-    private BPUserData(String name) {
-        this(name, -1, 0, 0);
+    private BPUserData(OfflinePlayer player) {
+        this(player, -1, 0, 0);
     }
 
     /**
      * コンストラクタ
-     * @param name プレイヤー名
+     * @param player プレイヤー名
      * @param point ポイント（-1を指定した場合、初期値に設定される）
      * @param kills キル数
      * @param deaths デス数
      */
-    private BPUserData(String name, int point, int kills, int deaths) {
+    private BPUserData(OfflinePlayer player, int point, int kills, int deaths) {
 
-        this.name = name;
+        this.player = player;
         this.kills = kills;
         this.deaths = deaths;
 
@@ -94,13 +93,21 @@ public class BPUserData {
         }
 
         if ( file == null ) {
-            file = new File(saveFolder, name + ".yml");
+            if ( Utility.isCB178orLater() ) {
+                file = new File(saveFolder, player.getUniqueId().toString() + ".yml");
+            } else {
+                file = new File(saveFolder, player.getName() + ".yml");
+            }
         }
 
         YamlConfiguration config = new YamlConfiguration();
         config.set("point", point);
         config.set("kills", kills);
         config.set("deaths", deaths);
+        if ( Utility.isCB178orLater() ) {
+            config.set("name", player.getUniqueId().toString());
+        }
+
         try {
             config.save(file);
         } catch (IOException e) {
@@ -113,16 +120,16 @@ public class BPUserData {
      */
     protected static void initCache() {
 
-        cache = new HashMap<String, BPUserData>();
+        cache = new HashMap<OfflinePlayer, BPUserData>();
         for ( BPUserData data : getAllUserData() ) {
-            cache.put(data.name, data);
+            cache.put(data.player, data);
         }
 
         // 1位を調べて更新する
         if ( cache.size() > 0 ) {
-            ArrayList<BPUserData> datas = getAllUserData();
+            ArrayList<BPUserData> datas = new ArrayList<BPUserData>(cache.values());
             sortUserData(datas);
-            BattlePoints.instance.refreshChampionNameWith(datas.get(0).name);
+            BattlePoints.instance.setChampion(datas.get(0).player);
         }
     }
 
@@ -147,8 +154,8 @@ public class BPUserData {
 
         Collections.sort(data, new Comparator<Player>() {
             public int compare(Player ent1, Player ent2) {
-                BPUserData data1 = getData(ent1.getName());
-                BPUserData data2 = getData(ent2.getName());
+                BPUserData data1 = getData(ent1);
+                BPUserData data2 = getData(ent2);
                 return data2.point - data1.point;
             }
         });
@@ -182,7 +189,7 @@ public class BPUserData {
     public static void sortUserDataByKillCount(ArrayList<BPUserData> data) {
         Collections.sort(data, new Comparator<BPUserData>() {
             public int compare(BPUserData ent1, BPUserData ent2) {
-                return ent2.getKillCount() - ent1.getKillCount();
+                return ent2.getKills() - ent1.getKills();
             }
         });
     }
@@ -194,24 +201,24 @@ public class BPUserData {
     public static void sortUserDataByDeathCount(ArrayList<BPUserData> data) {
         Collections.sort(data, new Comparator<BPUserData>() {
             public int compare(BPUserData ent1, BPUserData ent2) {
-                return ent2.getDeathCount() - ent1.getDeathCount();
+                return ent2.getDeaths() - ent1.getDeaths();
             }
         });
     }
 
     /**
-     * プレイヤー名に対応したユーザーデータを取得する
-     * @param name プレイヤー名
+     * プレイヤーに対応したユーザーデータを取得する
+     * @param player プレイヤー
      * @return BPUserData
      */
-    public static BPUserData getData(String name) {
+    public static BPUserData getData(OfflinePlayer player) {
 
-        if ( name == null || name.equals("") ) {
+        if ( player == null ) {
             return null;
         }
 
-        if ( cache.containsKey(name) ) {
-            return cache.get(name);
+        if ( cache.containsKey(player) ) {
+            return cache.get(player);
         }
 
         if ( saveFolder == null ) {
@@ -222,9 +229,15 @@ public class BPUserData {
             }
         }
 
-        File file = new File(saveFolder, name + ".yml");
+        String filename;
+        if ( Utility.isCB178orLater() ) {
+            filename = player.getUniqueId().toString() + ".yml";
+        } else {
+            filename = player.getName() + ".yml";
+        }
+        File file = new File(saveFolder, filename);
         if ( !file.exists() ) {
-            return new BPUserData(name);
+            return new BPUserData(player);
         }
 
         int initial = BattlePoints.instance.getBPConfig().getInitialPoint();
@@ -232,17 +245,27 @@ public class BPUserData {
         int point = config.getInt("point", initial);
         int kills = config.getInt("kills", 0);
         int deaths = config.getInt("deaths", 0);
-        return new BPUserData(name, point, kills, deaths);
+        return new BPUserData(player, point, kills, deaths);
+    }
+
+    /**
+     * プレイヤー名からBPUserDataを取得する
+     * @param name プレイヤー名
+     * @return BPUserData
+     */
+    @SuppressWarnings("deprecation")
+    public static BPUserData getDataFromName(String name) {
+        return getData(Bukkit.getOfflinePlayer(name));
     }
 
     /**
      * 指定したプレイヤーのポイントを返す
-     * @param name プレイヤー名
+     * @param player プレイヤー
      * @return ポイント
      */
-    public static int getPoint(String name) {
+    public static int getPoint(OfflinePlayer player) {
 
-        BPUserData data = getData(name);
+        BPUserData data = getData(player);
         if ( data != null ) {
             return data.getPoint();
         } else {
@@ -279,26 +302,10 @@ public class BPUserData {
         ArrayList<BPUserData> results = new ArrayList<BPUserData>();
         for ( String f : filelist ) {
             String name = f.substring(0, f.indexOf(".") );
-            results.add(getData(name));
+            results.add(getData(getOfflinePlayer(name)));
         }
 
         return results;
-    }
-
-    /**
-     * プレイヤー名を取得する
-     * @return プレイヤー名
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * ポイントを取得する
-     * @return ポイント
-     */
-    public int getPoint() {
-        return point;
     }
 
     /**
@@ -318,26 +325,142 @@ public class BPUserData {
     }
 
     /**
-     * キル数を取得する
-     * @return キル数
-     */
-    public int getKillCount() {
-        return kills;
-    }
-
-    /**
-     * デス数を取得する
-     * @return デス数
-     */
-    public int getDeathCount() {
-        return deaths;
-    }
-
-    /**
      * 現在のポイントに該当するクラスランクを取得する
      * @return クラスランク
      */
     public String getRankClass() {
         return BattlePoints.getInstance().getBPConfig().getRankFromPoint(point);
+    }
+
+    /**
+     * 名前、または、UUIDの文字列から、OfflinePlayerを取得して返す
+     * @param nameOrUuid CB175以前なら名前、CB178以降ならUUIDを指定する
+     * @return OfflinePlayer
+     */
+    @SuppressWarnings("deprecation")
+    private static OfflinePlayer getOfflinePlayer(String nameOrUuid) {
+        if ( Utility.isCB178orLater() ) {
+            UUID id = UUID.fromString(nameOrUuid);
+            return Bukkit.getOfflinePlayer(id);
+        } else {
+            return Bukkit.getOfflinePlayer(nameOrUuid);
+        }
+    }
+
+    /**
+     * データのバージョンアップが必要かチェックを行い、
+     * 必要ならバージョンアップを行う。
+     * @return バージョンアップを行ったかどうか
+     */
+    protected static boolean upgrade() {
+
+        if ( !Utility.isCB178orLater() ) {
+            return false;
+        }
+
+        if ( saveFolder == null ) {
+            saveFolder = new File(
+                    BattlePoints.getConfigFolder(), DATA_FOLDER_NAME);
+            if ( !saveFolder.exists() && !saveFolder.isDirectory() ) {
+                saveFolder.mkdirs();
+            }
+        }
+
+        boolean upgraded = false;
+
+        File[] files = saveFolder.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".yml");
+            }
+        });
+
+        for ( File file : files ) {
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+            // nameというタグでデータが含まれているなら、
+            // このファイルは既にアップグレード済みとみなす。
+            if ( config.contains("name") ) continue;
+
+            // アップグレード処理を行う。
+            String filename = file.getName();
+            String name = filename.substring(0, filename.indexOf(".") );
+            OfflinePlayer player = getOfflinePlayer(name);
+            int initial = BattlePoints.instance.getBPConfig().getInitialPoint();
+            int point = config.getInt("point", initial);
+            int kills = config.getInt("kills", 0);
+            int deaths = config.getInt("deaths", 0);
+            BPUserData data = new BPUserData(player, point, kills, deaths);
+
+            // 元のファイルを削除、新しいデータを保存
+            file.delete();
+            data.save();
+            upgraded = true;
+        }
+
+        return upgraded;
+    }
+
+    /**
+     * プレイヤーを取得する
+     * @return player
+     */
+    public OfflinePlayer getPlayer() {
+        return player;
+    }
+
+    /**
+     * キル数を取得する
+     * @return kills
+     */
+    public int getKills() {
+        return kills;
+    }
+
+    /**
+     * キル数を設定する
+     * @param kills キル数
+     */
+    public void setKills(int kills) {
+        this.kills = kills;
+    }
+
+    /**
+     * デス数を取得する
+     * @return deaths
+     */
+    public int getDeaths() {
+        return deaths;
+    }
+
+    /**
+     * デス数を設定する
+     * @param deaths デス数
+     */
+    public void setDeaths(int deaths) {
+        this.deaths = deaths;
+    }
+
+    /**
+     * プレイヤー名を取得する
+     * @return プレイヤー名
+     */
+    public String getName() {
+        return player.getName();
+    }
+
+    /**
+     * ポイントを取得する
+     * @return ポイント
+     */
+    public int getPoint() {
+        return point;
+    }
+
+    /**
+     * ポイントを設定する(saveを忘れずに！)
+     * @param point ポイント
+     */
+    public void setPoint(int point) {
+        this.point = point;
     }
 }

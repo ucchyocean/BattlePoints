@@ -162,7 +162,7 @@ public class Utility {
 
                     try {
                         is = jar.getInputStream(entry);
-                        reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                        reader = new BufferedReader(new InputStreamReader(is));
                         fos = new FileOutputStream(targetFile);
                         writer = new BufferedWriter(new OutputStreamWriter(fos));
 
