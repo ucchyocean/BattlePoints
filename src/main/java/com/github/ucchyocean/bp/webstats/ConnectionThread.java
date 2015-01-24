@@ -20,7 +20,7 @@ import com.github.ucchyocean.bp.BattlePoints;
  * @author ucchy
  */
 public class ConnectionThread extends Thread {
-    
+
     // 顔画像キャッシュの有効期限（1日）
     private static final long FACE_EXPIRE_LIMIT = 24 * 60 * 60 * 1000;
 
@@ -45,23 +45,23 @@ public class ConnectionThread extends Thread {
      * @see java.lang.Thread#run()
      */
     public void run() {
-        
+
         PrintStream outstream = null;
         BufferedReader reader = null;
         boolean isResponced = false;
-        
+
         // クライアントIP
         String destIP = "";
-        
+
         // クライアントポート
         int destport = -1;
-        
+
         // リクエストファイル
         String requestFile = "";
-        
+
         // UserAgent
         String userAgent = "";
-        
+
         try {
             // クライアントIP
             destIP = socket.getInetAddress().toString();
@@ -105,14 +105,14 @@ public class ConnectionThread extends Thread {
             }
 
             File file = new File(
-                    BattlePoints.getInstance().getWebstatsContentFolder(), 
+                    BattlePoints.getInstance().getWebstatsContentFolder(),
                     requestFile);
-            
+
             // 顔画像のリクエストなら、更新をまず行う
             if ( isFaceFile(requestFile) ) {
                 refreshFaceFile(requestFile, file);
             }
-            
+
             // データファイルなら、そのままレスポンス
             if ( requestFile.equals("/sort_data") ) {
                 String type = parameters.get("type");
@@ -123,37 +123,37 @@ public class ConnectionThread extends Thread {
                 int len = content.length;
                 isResponced = true;
                 outstream.println("HTTP/1.0 200 OK");
-                outstream.println("MIME_version：1.0");
-                outstream.println("Content_Type：text/htm1");
-                outstream.println("Content_Length：" + len);
+                outstream.println("MIME-version: 1.0");
+                outstream.println("Content-Type: text/xml");
+                outstream.println("Content-Length: " + len);
                 outstream.println("");
                 outstream.write(content, 0, len);
-                WebServerLogger.write(destIP + "," + destport + ",200," 
+                WebServerLogger.write(destIP + "," + destport + ",200,"
                         + requestFile + "," + userAgent);
                 return;
             }
-            
+
             // レスポンス処理
             if ( !file.exists() ) {
                 isResponced = true;
                 outstream.println("HTTP/1.0 404 Not Found");
                 outstream.println("");
-                WebServerLogger.write(destIP + "," + destport + ",404," 
+                WebServerLogger.write(destIP + "," + destport + ",404,"
                         + requestFile + "," + userAgent);
             } else {
                 int len = (int) file.length();
                 isResponced = true;
                 outstream.println("HTTP/1.0 200 OK");
-                outstream.println("MIME_version：1.0");
-                outstream.println("Content_Type：text/htm1");
-                outstream.println("Content_Length：" + len);
+                outstream.println("MIME-version: 1.0");
+                outstream.println("Content-Type: " + getContentType(file.getName()));
+                outstream.println("Content-Length: " + len);
                 outstream.println("");
 
                 // ファイル転送
                 byte[] content = cache.readFile(requestFile, file);
                 outstream.write(content, 0, len);
-                
-                WebServerLogger.write(destIP + "," + destport + ",200," 
+
+                WebServerLogger.write(destIP + "," + destport + ",200,"
                         + requestFile + "," + userAgent);
             }
 
@@ -163,7 +163,7 @@ public class ConnectionThread extends Thread {
                 outstream.println("HTTP/1.0 500 Internal Server Error");
                 outstream.println("");
             }
-            WebServerLogger.write(destIP + "," + destport + ",500," 
+            WebServerLogger.write(destIP + "," + destport + ",500,"
                     + requestFile + "," + userAgent);
         } finally {
             if ( reader != null ) {
@@ -179,7 +179,7 @@ public class ConnectionThread extends Thread {
             }
         }
     }
-    
+
     /**
      * 指定されたファイル名が、プレイヤーフェイスかどうか
      * @param name リクエストファイル名
@@ -188,16 +188,16 @@ public class ConnectionThread extends Thread {
     private boolean isFaceFile(String name) {
         return (name.startsWith("/faces/") && name.endsWith(".png"));
     }
-    
+
     /**
      * プレイヤーフェイスファイルの更新を行う
      * @param name リクエストファイル名
      * @param file リクエストファイル
      */
     private void refreshFaceFile(String name, File file) {
-        
+
         String playerName = name.substring("/faces/".length(), name.length() - ".png".length());
-        
+
         if ( !file.exists() ) {
             // 顔画像が無いならダウンロード
             PlayerFaceDownloader.downloadSkin(playerName, file, true);
@@ -208,5 +208,32 @@ public class ConnectionThread extends Thread {
                 PlayerFaceDownloader.downloadSkin(playerName, file, false);
             }
         }
+    }
+
+    private static String getContentType(String name) {
+        if ( name.endsWith(".txt") ) {
+            return "text/plain";
+        } else if ( name.endsWith(".htm") || name.endsWith(".html") ) {
+            return "text/html";
+        } else if ( name.endsWith(".xml") ) {
+            return "text/xml";
+        } else if ( name.endsWith(".js") ) {
+            return "text/javascript";
+        } else if ( name.endsWith(".vbs") ) {
+            return "text/vbscript";
+        } else if ( name.endsWith(".css") ) {
+            return "text/css";
+        } else if ( name.endsWith(".gif") ) {
+            return "image/gif";
+        } else if ( name.endsWith(".jpg") || name.endsWith(".jpeg") ) {
+            return "image/jpeg";
+        } else if ( name.endsWith(".png") ) {
+            return "image/png";
+        } else if ( name.endsWith(".cgi") ) {
+            return "application/x-httpd-cgi";
+        } else if ( name.endsWith(".pdf") ) {
+            return "application/pdf";
+        }
+        return "text/plain";
     }
 }

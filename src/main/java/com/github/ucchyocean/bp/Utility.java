@@ -126,7 +126,7 @@ public class Utility {
 
     /**
      * jarファイルの中に格納されているフォルダを、中のファイルごとまとめてjarファイルの外にコピーするメソッド<br/>
-     * テキストファイルは、WindowsだとS-JISで、MacintoshやLinuxだとUTF-8で保存されます。
+     * 全てのファイルは変換されずに、そのままコピーされます。
      * @param jarFile jarファイル
      * @param targetFile コピー先のフォルダ
      * @param sourceFilePath コピー元のフォルダ
@@ -157,19 +157,15 @@ public class Utility {
 
                     InputStream is = null;
                     FileOutputStream fos = null;
-                    BufferedReader reader = null;
-                    BufferedWriter writer = null;
 
                     try {
                         is = jar.getInputStream(entry);
-                        reader = new BufferedReader(new InputStreamReader(is));
                         fos = new FileOutputStream(targetFile);
-                        writer = new BufferedWriter(new OutputStreamWriter(fos));
 
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            writer.write(line);
-                            writer.newLine();
+                        byte[] buf = new byte[8192];
+                        int len;
+                        while ( (len = is.read(buf)) != -1 ) {
+                            fos.write(buf, 0, len);
                         }
 
                     } catch (FileNotFoundException e) {
@@ -177,21 +173,6 @@ public class Utility {
                     } catch (IOException e) {
                         e.printStackTrace();
                     } finally {
-                        if ( writer != null ) {
-                            try {
-                                writer.flush();
-                                writer.close();
-                            } catch (IOException e) {
-                                // do nothing.
-                            }
-                        }
-                        if ( reader != null ) {
-                            try {
-                                reader.close();
-                            } catch (IOException e) {
-                                // do nothing.
-                            }
-                        }
                         if ( fos != null ) {
                             try {
                                 fos.flush();
