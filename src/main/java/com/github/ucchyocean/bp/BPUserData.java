@@ -105,7 +105,7 @@ public class BPUserData {
         config.set("kills", kills);
         config.set("deaths", deaths);
         if ( Utility.isCB178orLater() ) {
-            config.set("name", player.getUniqueId().toString());
+            config.set("name", player.getName());
         }
 
         try {
@@ -237,7 +237,8 @@ public class BPUserData {
         }
         File file = new File(saveFolder, filename);
         if ( !file.exists() ) {
-            return new BPUserData(player);
+            cache.put(player, new BPUserData(player));
+            return cache.get(player);
         }
 
         int initial = BattlePoints.instance.getBPConfig().getInitialPoint();
@@ -245,7 +246,8 @@ public class BPUserData {
         int point = config.getInt("point", initial);
         int kills = config.getInt("kills", 0);
         int deaths = config.getInt("deaths", 0);
-        return new BPUserData(player, point, kills, deaths);
+        cache.put(player, new BPUserData(player, point, kills, deaths));
+        return cache.get(player);
     }
 
     /**
@@ -293,9 +295,7 @@ public class BPUserData {
 
         String[] filelist = saveFolder.list(new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                if ( name.endsWith(".yml") )
-                    return true;
-                return false;
+                return name.endsWith(".yml");
             }
         });
 
@@ -384,7 +384,8 @@ public class BPUserData {
             // アップグレード処理を行う。
             String filename = file.getName();
             String name = filename.substring(0, filename.indexOf(".") );
-            OfflinePlayer player = getOfflinePlayer(name);
+            @SuppressWarnings("deprecation")
+            OfflinePlayer player = Bukkit.getOfflinePlayer(name);
             int initial = BattlePoints.instance.getBPConfig().getInitialPoint();
             int point = config.getInt("point", initial);
             int kills = config.getInt("kills", 0);
@@ -445,6 +446,14 @@ public class BPUserData {
      * @return プレイヤー名
      */
     public String getName() {
+        // 必ず非nullを返すように、保護を行う。
+        if ( player.getName() == null ) {
+            if ( Utility.isCB178orLater() ) {
+                return player.getUniqueId().toString();
+            } else {
+                return player.toString();
+            }
+        }
         return player.getName();
     }
 
