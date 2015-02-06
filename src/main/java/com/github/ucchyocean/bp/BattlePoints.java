@@ -7,6 +7,7 @@ package com.github.ucchyocean.bp;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -34,7 +35,7 @@ public class BattlePoints extends JavaPlugin {
     protected static ColorTeamingBridge ctbridge;
 
     /** 現在1位のプレイヤー */
-    private OfflinePlayer champion;
+    private UUID championID;
 
     /** スコアボードのオブジェクティブ */
     private Objective objective;
@@ -180,8 +181,8 @@ public class BattlePoints extends JavaPlugin {
      */
     public void changePoints(Player winner, Player loser) {
 
-        BPUserData winnerData = BPUserData.getData(winner);
-        BPUserData loserData = BPUserData.getData(loser);
+        BPUserData winnerData = BPUserData.getData(winner.getUniqueId());
+        BPUserData loserData = BPUserData.getData(loser.getUniqueId());
         int lastWinnerPoint = winnerData.getPoint();
         int lastLoserPoint = loserData.getPoint();
         int rate = config.getEloRating(lastWinnerPoint, lastLoserPoint);
@@ -203,8 +204,8 @@ public class BattlePoints extends JavaPlugin {
         addKill(winner, 1);
         setPoint(loser, newLoserPoint);
         addDeath(loser, 1);
-        winnerData = BPUserData.getData(winner);
-        loserData = BPUserData.getData(loser);
+        winnerData = BPUserData.getData(winner.getUniqueId());
+        loserData = BPUserData.getData(loser.getUniqueId());
 
         // ポイント移動の通知を行う
         String wColor = config.getColorFromPoint(winnerData.getPoint());
@@ -221,7 +222,7 @@ public class BattlePoints extends JavaPlugin {
      */
     public void setPoint(OfflinePlayer player, int point) {
 
-        BPUserData data = BPUserData.getData(player);
+        BPUserData data = BPUserData.getData(player.getUniqueId());
 
         // 変動前のランクを取得しておく
         String oldRank = config.getRankFromPoint(data.getPoint());
@@ -258,12 +259,12 @@ public class BattlePoints extends JavaPlugin {
         // チャンピオンのポイントが減算されたか、
         // チャンピオン以外の人のポイントがチャンピオンのポイントを超えたなら、
         // チャンピオンの更新を確認する
-        int championPoint = BPUserData.getPoint(champion);
-        if ( (player.equals(champion) && !isPlus) ||
-                (!player.equals(champion) && (championPoint < point) ) ) {
+        int championPoint = BPUserData.getPoint(championID);
+        if ( (player.getUniqueId().equals(championID) && !isPlus) ||
+                (!player.getUniqueId().equals(championID) && (championPoint < point) ) ) {
             ArrayList<BPUserData> datas = BPUserData.getAllUserData();
             BPUserData.sortUserData(datas);
-            setChampion(datas.get(0).getPlayer());
+            setChampion(datas.get(0).getID());
         }
     }
 
@@ -274,7 +275,7 @@ public class BattlePoints extends JavaPlugin {
      * @return 加算後のポイント
      */
     public int addPoint(OfflinePlayer player, int point) {
-        int newpoint = BPUserData.getData(player).getPoint() + point;
+        int newpoint = BPUserData.getData(player.getUniqueId()).getPoint() + point;
         setPoint(player, newpoint);
         return newpoint;
     }
@@ -286,7 +287,7 @@ public class BattlePoints extends JavaPlugin {
      * @return 加算後のキル数
      */
     public int addKill(OfflinePlayer player, int amount) {
-        BPUserData data = BPUserData.getData(player);
+        BPUserData data = BPUserData.getData(player.getUniqueId());
         int newpoint = data.getKills() + amount;
         if ( newpoint < 0 ) {
             newpoint = 0;
@@ -303,7 +304,7 @@ public class BattlePoints extends JavaPlugin {
      * @return 加算後のデス数
      */
     public int addDeath(OfflinePlayer player, int amount) {
-        BPUserData data = BPUserData.getData(player);
+        BPUserData data = BPUserData.getData(player.getUniqueId());
         int newpoint = data.getDeaths() + amount;
         if ( newpoint < 0 ) {
             newpoint = 0;
@@ -322,11 +323,19 @@ public class BattlePoints extends JavaPlugin {
     }
 
     /**
-     * チャンピオンの名前を返す
+     * チャンピオンのIDを返す
      * @return チャンピオン
      */
-    protected OfflinePlayer getChampion() {
-        return champion;
+    protected UUID getChampion() {
+        return championID;
+    }
+
+    /**
+     * チャンピオンの更新を行う
+     * @param id チャンピオンのID
+     */
+    protected void setChampion(UUID id) {
+        setChampion(Bukkit.getOfflinePlayer(id));
     }
 
     /**
@@ -335,28 +344,29 @@ public class BattlePoints extends JavaPlugin {
      */
     protected void setChampion(OfflinePlayer player) {
 
-        if ( champion == null ) {
-            champion = player;
+        if ( championID == null ) {
+            championID = player.getUniqueId();
 
             // Vault連携の場合は、ここでPrefixを設定する
             if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
                 String pre = config.getChampionPrefix();
 
                 for ( String world : config.getDisplayPointOnChatWorlds() ) {
-                    String worldpre = vcbridge.getPlayerPrefix(world, champion);
+                    String worldpre = vcbridge.getPlayerPrefix(world, player);
                     if ( !worldpre.startsWith(pre) ) {
-                        vcbridge.setPlayerPrefix(world, champion, pre + worldpre);
+                        vcbridge.setPlayerPrefix(world, player, pre + worldpre);
                     }
                 }
             }
 
         } else {
-            if ( champion.equals(player) ) {
+            if ( championID.equals(player.getUniqueId()) ) {
                 return; // チャンピオンに変化が無いので何もしない
             }
 
-            OfflinePlayer prevChamp = champion;
-            champion = player;
+            UUID prevChampID = championID;
+            OfflinePlayer prevChamp = Bukkit.getOfflinePlayer(prevChampID);
+            championID = player.getUniqueId();
 
              // Vault連携の場合は、ここでPrefixを設定する
             if ( config.isDisplayPointOnChat() && config.isUseVault()  && vcbridge != null ) {
@@ -371,9 +381,9 @@ public class BattlePoints extends JavaPlugin {
                     }
 
                     // 新しいチャンピオンにprefixを与える
-                    worldpre = vcbridge.getPlayerPrefix(world, champion);
+                    worldpre = vcbridge.getPlayerPrefix(world, player);
                     if ( !worldpre.startsWith(pre) ) {
-                        vcbridge.setPlayerPrefix(world, champion, pre + worldpre);
+                        vcbridge.setPlayerPrefix(world, player, pre + worldpre);
                     }
                 }
             }

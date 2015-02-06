@@ -5,7 +5,8 @@
  */
 package com.github.ucchyocean.bp;
 
-import org.bukkit.OfflinePlayer;
+import java.util.UUID;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -72,15 +73,15 @@ public class PlayerListener implements Listener {
                 return;
             }
 
-            BPUserData data = BPUserData.getData(player);
+            BPUserData data = BPUserData.getData(player.getUniqueId());
             int point = data.getPoint();
             String rank = config.getRankFromPoint(point);
             String symbol = config.getSymbolFromRank(rank);
             String color = config.getColorFromRank(rank);
 
-            OfflinePlayer champ = BattlePoints.instance.getChampion();
+            UUID champ = BattlePoints.instance.getChampion();
             String champPre = "";
-            if ( player.getName().equals(champ.getName()) ) {
+            if ( player.getUniqueId().equals(champ) ) {
                 champPre = BattlePoints.getInstance().getBPConfig().getChampionPrefix();
             }
 
@@ -104,7 +105,7 @@ public class PlayerListener implements Listener {
         if ( config.isDisplayPointOnChat() && config.isUseVault()
                 && BattlePoints.vcbridge != null ) {
             Player player = event.getPlayer();
-            BPUserData data = BPUserData.getData(player);
+            BPUserData data = BPUserData.getData(player.getUniqueId());
             int point = data.getPoint();
             String rank = config.getRankFromPoint(point);
             String symbol = config.getSymbolFromRank(rank);
@@ -116,5 +117,10 @@ public class PlayerListener implements Listener {
                 BattlePoints.vcbridge.setPlayerSuffix(world, player, suffix);
             }
         }
+
+        // プレイヤー名のキャッシュを更新する
+        BPUserData data = BPUserData.getData(event.getPlayer().getUniqueId());
+        data.setName(event.getPlayer().getName());
+        data.save();
     }
 }

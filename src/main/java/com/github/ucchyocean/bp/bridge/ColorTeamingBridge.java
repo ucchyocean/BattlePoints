@@ -184,7 +184,7 @@ public class ColorTeamingBridge implements Listener {
                 continue;
             }
             battlepoints.addPoint(getOfflinePlayer(name), bonus);
-            BPUserData data = BPUserData.getData(getOfflinePlayer(name));
+            BPUserData data = BPUserData.getDataFromName(name);
             sendMessage(player, "teamWonBonus", displayName, bonus, data.getPoint());
         }
 
